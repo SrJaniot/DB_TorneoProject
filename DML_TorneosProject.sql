@@ -33,3 +33,13 @@ SELECT fun_insert_game('dota 2','juego de estrategia en tiempo real',5,'https://
 SELECT fun_insert_game('overwatch','juego de disparos en primera persona',7,'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Overwatch_circle_logo.svg/1200px-Overwatch_circle_logo.svg.png');
 
 --SELECT * FROM tab_game;
+
+-- DML PARA LAS TABLAS DATOSPERSONALES MAS JUGADOR------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+SELECT fun_insert_jugador_datospersonales('esteban janiot',24,'3152901731','estebanjaniot10@gmail.com','https://fotodeesteban.com',1,
+                                          'señor janiot','oro','https://u.gg/lol/profile/la1/señor%20janiot/overview',1);
+SELECT fun_insert_jugador_datospersonales('Christian Torres',24,'3146808848','christianalexis399@gmail.com','https://fotodechristian.com',1,
+                                          'Halomip','Esmeralda ','https://u.gg/lol/profile/la1/halomip/overview',100);
+
+
+--SELECT * FROM tab_jugador;
+--SELECT * FROM tab_datospersonales

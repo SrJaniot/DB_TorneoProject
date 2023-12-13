@@ -100,6 +100,7 @@ CREATE TABLE tab_equipo -- EQUIPO
     id_game                 INTEGER     NOT NULL CHECK(id_game>0),
     estado_equipo           BOOLEAN     NOT NULL default TRUE, -- TRUE = ACTIVO, FALSE = INACTIVO
     tamanio_equipos         INTEGER     NOT NULL,
+    Numero_torneos_ganados  INTEGER     NOT NULL,
     user_insert             VARCHAR     NOT NULL,
     user_update             VARCHAR,
     date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
@@ -115,6 +116,7 @@ CREATE TABLE tab_torneo -- TORNEO
     id_torneo               INTEGER     NOT NULL CHECK(id_torneo>0),
     nom_torneo              VARCHAR     NOT NULL,
     desc_torneo             VARCHAR     NOT NULL,
+    fecha_torneo            TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     foto_torneo             VARCHAR     NOT NULL,
     cantidad_equipos        INTEGER     NOT NULL,
     cantidad_match          INTEGER     NOT NULL,
@@ -140,6 +142,7 @@ CREATE TABLE tab_match --Match (partidas del arbol)
     estado_match            BOOLEAN     NOT NULL default TRUE, -- TRUE = ACTIVO, FALSE = INACTIVO
     nom_match               VARCHAR     NOT NULL,
     desc_match              VARCHAR     NOT NULL,
+    Fecha_match             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     resultado_match         VARCHAR     ,
     ganador_match           INTEGER     ,
     perdedor_match          INTEGER     ,

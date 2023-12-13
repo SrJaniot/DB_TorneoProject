@@ -40,7 +40,11 @@ $$
         SELECT funcion_Retorna_ultmoid('tab_ciudad','id_ciudad') INTO ULTIMOID;
         IF fun_validar_ciudad_insert(wnom_ciudad_aux, wdesc_ciudad_aux) THEN
             INSERT INTO tab_ciudad VALUES (ULTIMOID,wnom_ciudad_aux, wdesc_ciudad_aux);
-            RETURN TRUE;
+            IF FOUND THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
         ELSE
             RETURN FALSE;
         END IF;
@@ -85,7 +89,11 @@ $$
 
         IF fun_validar_game_insert(wnom_game_aux, wdesc_game_aux,wtamanio_equipos,wfoto_logo_game) THEN
             INSERT INTO tab_game VALUES (ULTIMOID,wnom_game_aux, wdesc_game_aux,wtamanio_equipos,TRUE,wfoto_logo_game);
-            RETURN TRUE;
+            IF FOUND THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
         ELSE
             RETURN FALSE;
         END IF;
@@ -109,7 +117,7 @@ $$
 
     BEGIN
         SELECT CHAR_LENGTH(wnombre_jugador)INTO TAMANIO_NOMBRE;
-        SELECT CHAR_LENGTH(CAST(wtel_jugador AS CHAR)) INTO TAMANIO_NUM_TELEFONO;  
+        SELECT CHAR_LENGTH(wtel_jugador) INTO TAMANIO_NUM_TELEFONO;  
         IF REGEXP_LIKE(wcorreo_jugador, '[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}') THEN
             ES_CORREO := TRUE;
         ELSE
@@ -133,23 +141,78 @@ LANGUAGE plpgsql;
 
 
 --FUNCION PARA INSERTAR DATOS EN LA TABLA tab_datosPersonales CON PARAMETROS DE ENTRADA
-CREATE OR REPLACE FUNCTION fun_insert_datosPersonales(wnombre_jugador tab_datosPersonales.nombre_jugador%TYPE, wedad_jugador tab_datosPersonales.edad_jugador%TYPE,
+CREATE OR REPLACE FUNCTION fun_insert_datosPersonales(WULTIMOID tab_datosPersonales.id_datos%TYPE,wnombre_jugador tab_datosPersonales.nombre_jugador%TYPE,
+                             wedad_jugador tab_datosPersonales.edad_jugador%TYPE,
                              wtel_jugador tab_datosPersonales.tel_jugador%TYPE,wcorreo_jugador tab_datosPersonales.correo_jugador%TYPE,
                              wfoto_perfil_jugador tab_datosPersonales.foto_perfil_jugador%TYPE,wid_ciudad tab_datosPersonales.id_ciudad%type) RETURNS BOOLEAN AS
 $$
     DECLARE
         wnombre_jugador_aux tab_datosPersonales.nombre_jugador%TYPE;
-        wtel_jugador_aux tab_datosPersonales.tel_jugador%TYPE;
         wcorreo_jugador_aux tab_datosPersonales.correo_jugador%TYPE;
-        wfoto_perfil_jugador_aux tab_datosPersonales.foto_perfil_jugador%TYPE;
-        ULTIMOID INTEGER;
+
     BEGIN
         SELECT UPPER(wnombre_jugador) INTO wnombre_jugador_aux;
-        SELECT CAST(wtel_jugador AS CHAR) INTO wtel_jugador_aux;
         SELECT LOWER(wcorreo_jugador) INTO wcorreo_jugador_aux;
-        SELECT funcion_Retorna_ultmoid('tab_datosPersonales','id_datosPersonales') INTO ULTIMOID;
-        IF fun_validar_datosPersonales_insert(wnombre_jugador_aux, wedad_jugador,wtel_jugador_aux,wcorreo_jugador_aux,wfoto_perfil_jugador,wid_ciudad) THEN
-            INSERT INTO tab_datosPersonales VALUES (ULTIMOID,wnombre_jugador_aux, wedad_jugador,wtel_jugador_aux,wcorreo_jugador_aux,wfoto_perfil_jugador,wid_ciudad);
+
+
+        RAISE NOTICE 'NOMBRE: %',wnombre_jugador_aux;
+        RAISE NOTICE 'EDAD: %',wedad_jugador;
+        RAISE NOTICE 'TELEFONO: %',wtel_jugador;
+        RAISE NOTICE 'CORREO: %',wcorreo_jugador_aux;
+        RAISE NOTICE 'FOTO: %',wfoto_perfil_jugador;
+        RAISE NOTICE 'ID CIUDAD: %',wid_ciudad;
+
+         
+        
+      
+        IF fun_validar_datosPersonales_insert(wnombre_jugador_aux, wedad_jugador,wtel_jugador,wcorreo_jugador_aux,wfoto_perfil_jugador,wid_ciudad) THEN
+            RAISE NOTICE 'ATRIBUTOS INSERTADOS CORRECTAMENTE';
+            INSERT INTO tab_datosPersonales VALUES (WULTIMOID,wnombre_jugador_aux, wedad_jugador,wtel_jugador,wcorreo_jugador_aux,wfoto_perfil_jugador,wid_ciudad);
+            IF FOUND THEN
+                RAISE NOTICE 'ATRIBUTOS INSERTADOS CORRECTAMENTE';
+                RETURN TRUE;
+            ELSE
+                RAISE NOTICE 'ATRIBUTOS INSERTADOS INCORRECTAMENTE';
+                RETURN FALSE;
+            END IF;
+        ELSE
+            RAISE NOTICE 'ATRIBUTOS INSERTADOS INCORRECTAMENTE';
+            RETURN FALSE;
+        END IF;
+    END;
+$$
+LANGUAGE plpgsql;
+
+--FUNCIONES PARA LA TABLA tab_jugador -------------------------------------------------------------------------------------------------------------------------------------------------------------
+--VALIDAR ATRIBUTOS DE LA TABLA tab_jugador
+
+CREATE OR REPLACE FUNCTION fun_validar_jugador_insert(wid_datos tab_jugador.id_datos%TYPE, wnickname_jugador tab_jugador.nickname_jugador%TYPE,
+                             wliga_jugador tab_jugador.liga_jugador%TYPE,wlink_cuenta_jugador tab_jugador.link_cuenta_jugador%TYPE,
+                             wid_game tab_jugador.id_game%TYPE) RETURNS BOOLEAN AS
+$$
+
+     DECLARE ID_DATOS_ENCONTRADA tab_jugador.id_datos%TYPE;
+     DECLARE DATOS_ENCONTRADA BOOLEAN := FALSE;
+     DECLARE TAMANIO_NICKNAME INTEGER;
+     DECLARE TAMANIO_LIGAJUGADOR INTEGER;
+     DECLARE ID_GAME_ENCONTRADA tab_jugador.id_datos%TYPE;
+     DECLARE GAME_ENCONTRADA BOOLEAN := FALSE;
+
+
+    BEGIN
+        SELECT a.id_datos INTO ID_DATOS_ENCONTRADA FROM tab_datosPersonales a WHERE a.id_datos = wid_datos;
+        IF ID_DATOS_ENCONTRADA IS NOT NULL THEN
+             DATOS_ENCONTRADA = TRUE;
+        END IF;
+        SELECT CHAR_LENGTH(wnickname_jugador)INTO TAMANIO_NICKNAME;
+        SELECT CHAR_LENGTH(wliga_jugador)INTO TAMANIO_LIGAJUGADOR;
+        SELECT id_game INTO ID_GAME_ENCONTRADA FROM tab_game WHERE tab_game.id_game = wid_game;
+        IF ID_GAME_ENCONTRADA IS NOT NULL THEN
+             GAME_ENCONTRADA = TRUE;
+        END IF;
+
+        --ESTE IF TIENE QUE VALIDAR : DATOS_ENCONTRADA=TRUE,  TAMANIO_NICKNAME>2  TAMANIO_LIGAJUGADOR>2,  GAME_ENCONTRADA=TRUE 
+        IF DATOS_ENCONTRADA=TRUE AND TAMANIO_NICKNAME>2 AND TAMANIO_LIGAJUGADOR>2 AND GAME_ENCONTRADA=TRUE  THEN
             RETURN TRUE;
         ELSE
             RETURN FALSE;
@@ -158,6 +221,50 @@ $$
 $$
 LANGUAGE plpgsql;
 
+
+
+--FUNCION PARA INSERTAR DATOS EN LA TABLA tab_jugador CON PARAMETROS DE ENTRADA
+CREATE OR REPLACE FUNCTION fun_insert_jugador_datospersonales(wnombre_jugador tab_datosPersonales.nombre_jugador%TYPE, wedad_jugador tab_datosPersonales.edad_jugador%TYPE,
+                             wtel_jugador tab_datosPersonales.tel_jugador%TYPE,wcorreo_jugador tab_datosPersonales.correo_jugador%TYPE,
+                             wfoto_perfil_jugador tab_datosPersonales.foto_perfil_jugador%TYPE,wid_ciudad tab_datosPersonales.id_ciudad%type,
+
+                             wnickname_jugador tab_jugador.nickname_jugador%TYPE,
+                             wliga_jugador tab_jugador.liga_jugador%TYPE,wlink_cuenta_jugador tab_jugador.link_cuenta_jugador%TYPE,
+                             wid_game tab_jugador.id_game%TYPE) RETURNS BOOLEAN AS
+$$
+   DECLARE ULTIMOID_DATOSPERSONALES INTEGER;
+   DECLARE ULTIMOID_JUGADOR INTEGER;
+       
+    BEGIN
+        SELECT funcion_Retorna_ultmoid('tab_datosPersonales','id_datos') INTO ULTIMOID_DATOSPERSONALES;
+        IF fun_insert_datosPersonales(ULTIMOID_DATOSPERSONALES,wnombre_jugador, wedad_jugador,wtel_jugador,wcorreo_jugador,wfoto_perfil_jugador,wid_ciudad) THEN
+           RAISE NOTICE 'DATOS PERSONALES ATRIBUTOS INSERTADOS CORRECTAMENTE';
+            IF fun_validar_jugador_insert(ULTIMOID_DATOSPERSONALES, wnickname_jugador,wliga_jugador,wlink_cuenta_jugador,wid_game) THEN
+                RAISE NOTICE 'JUGADOR ATRIBUTOS INSERTADO CORRECTAMENTE';
+                -- ANTES DE INSERTAR CONVERTIR A MAYUSCULA
+                SELECT UPPER(wnickname_jugador) INTO wnickname_jugador;
+                SELECT UPPER(wliga_jugador) INTO wliga_jugador;
+                SELECT LOWER(wlink_cuenta_jugador) INTO wlink_cuenta_jugador;
+                SELECT funcion_Retorna_ultmoid('tab_jugador','id_jugador') INTO ULTIMOID_JUGADOR;
+                INSERT INTO tab_jugador VALUES (ULTIMOID_JUGADOR,ULTIMOID_DATOSPERSONALES, wnickname_jugador,wliga_jugador,TRUE,wlink_cuenta_jugador,wid_game);
+                IF FOUND THEN
+                    RETURN TRUE;
+                ELSE
+                    RETURN FALSE;
+                END IF;
+            ELSE
+                RAISE NOTICE 'JUGADOR ATRIBUTOS INSERTADO INCORRECTAMENTE';
+                DELETE FROM tab_datosPersonales WHERE tab_datosPersonales.id_datos = ULTIMOID_DATOSPERSONALES;
+                RAISE NOTICE 'DATOS PERSONALES ELIMINADOS CORRECTAMENTE';
+                RETURN FALSE;
+            END IF;
+        ELSE
+            RAISE NOTICE 'DATOS PERSONALES ATRIBUTOS INSERTADOS INCORRECTAMENTE';
+            RETURN FALSE;
+        END IF;
+    END;      
+$$
+LANGUAGE plpgsql;
 
 
 
