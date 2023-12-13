@@ -99,8 +99,8 @@ CREATE TABLE tab_equipo -- EQUIPO
     foto_equipo             VARCHAR     NOT NULL,
     id_game                 INTEGER     NOT NULL CHECK(id_game>0),
     estado_equipo           BOOLEAN     NOT NULL default TRUE, -- TRUE = ACTIVO, FALSE = INACTIVO
-    tamanio_equipos         INTEGER     NOT NULL,
-    Numero_torneos_ganados  INTEGER     NOT NULL,
+    tamanio_equipo          INTEGER     NOT NULL,
+    numero_torneos_ganados  INTEGER     NOT NULL default 0,
     user_insert             VARCHAR     NOT NULL,
     user_update             VARCHAR,
     date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL,

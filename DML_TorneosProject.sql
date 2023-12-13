@@ -36,10 +36,19 @@ SELECT fun_insert_game('overwatch','juego de disparos en primera persona',7,'htt
 
 -- DML PARA LAS TABLAS DATOSPERSONALES MAS JUGADOR------------------------------------------------------------------------------------------------------------------------------------------------------------- 
 SELECT fun_insert_jugador_datospersonales('esteban janiot',24,'3152901731','estebanjaniot10@gmail.com','https://fotodeesteban.com',1,
-                                          'señor janiot','oro','https://u.gg/lol/profile/la1/señor%20janiot/overview',1);
+                                          'señor janiot','oro','https://www.op.gg/summoners/lan/Señor%20Janiot-LAN',1);
 SELECT fun_insert_jugador_datospersonales('Christian Torres',24,'3146808848','christianalexis399@gmail.com','https://fotodechristian.com',1,
-                                          'Halomip','Esmeralda ','https://u.gg/lol/profile/la1/halomip/overview',100);
+                                          'Halomip','Esmeralda ','https://www.op.gg/summoners/lan/Halomip-LAN',1);
 
 
 --SELECT * FROM tab_jugador;
 --SELECT * FROM tab_datospersonales
+
+
+-- DML PARA LA TABLA EQUIPO-------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT fun_insert_equipo('teaM SRJANIOT','equipo de league of legends','https://fotodeequipo.com',1); --se puede
+SELECT fun_insert_equipo('teaM SRJANIOT','equipo de valorant','https://fotodeequipo.com',2); -- se puede
+SELECT fun_insert_equipo('teaM SRHALOMIP','equipo de league of legends','https://fotodeequipo.com',1); -- se puede
+SELECT fun_insert_equipo('teaM SRJANIOT','equipo de ????????','https://fotodeequipo.com',25); -- no se puede NO EXISTE GAME
+SELECT fun_insert_equipo('teaM SRJANIOT','equipo de league of legends','https://fotodeequipo.com',1); -- no se puede duplicado nombre
+

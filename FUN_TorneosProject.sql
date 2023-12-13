@@ -223,7 +223,7 @@ LANGUAGE plpgsql;
 
 
 
---FUNCION PARA INSERTAR DATOS EN LA TABLA tab_jugador CON PARAMETROS DE ENTRADA
+--FUNCION PARA INSERTAR DATOS EN LA TABLA tab_jugador CON PARAMETROS DE ENTRADA mas la tabla tab_datosPersonales
 CREATE OR REPLACE FUNCTION fun_insert_jugador_datospersonales(wnombre_jugador tab_datosPersonales.nombre_jugador%TYPE, wedad_jugador tab_datosPersonales.edad_jugador%TYPE,
                              wtel_jugador tab_datosPersonales.tel_jugador%TYPE,wcorreo_jugador tab_datosPersonales.correo_jugador%TYPE,
                              wfoto_perfil_jugador tab_datosPersonales.foto_perfil_jugador%TYPE,wid_ciudad tab_datosPersonales.id_ciudad%type,
@@ -267,6 +267,69 @@ $$
 LANGUAGE plpgsql;
 
 
+--FUNCIONES PARA LA TABLA tab_equipo -------------------------------------------------------------------------------------------------------------------------------------------------------------
+--VALIDAR ATRIBUTOS DE LA TABLA tab_equipo
+CREATE OR REPLACE FUNCTION fun_validar_equipo_insert(wnom_equipo tab_equipo.nom_equipo%TYPE, 
+                            wid_game tab_equipo.id_game%TYPE) RETURNS BOOLEAN AS
+$$     
+        DECLARE TAMANIO_NOMBRE INTEGER;
+        DECLARE NOMBRE_EQUIPO_ENCONTRADO tab_equipo.nom_equipo%TYPE;
+        DECLARE EQUIPO_ENCONTRADO BOOLEAN := FALSE;
+        DECLARE ID_GAME_ENCONTRADA tab_equipo.id_game%TYPE;
+        DECLARE GAME_ENCONTRADA BOOLEAN := FALSE;
+    
+        BEGIN
+            SELECT UPPER(wnom_equipo) INTO wnom_equipo;
+            SELECT id_game INTO ID_GAME_ENCONTRADA FROM tab_game WHERE tab_game.id_game = wid_game;
+            IF ID_GAME_ENCONTRADA IS NOT NULL THEN
+                GAME_ENCONTRADA = TRUE;
+                SELECT nom_equipo INTO NOMBRE_EQUIPO_ENCONTRADO FROM tab_equipo WHERE tab_equipo.nom_equipo = wnom_equipo AND tab_equipo.id_game = wid_game;
+                IF NOMBRE_EQUIPO_ENCONTRADO IS NOT NULL THEN
+                    EQUIPO_ENCONTRADO = TRUE;
+                    RAISE NOTICE 'EQUIPO NOMBRE DUPLICADO';
+                END IF;
+            END IF;
+            SELECT CHAR_LENGTH(wnom_equipo)INTO TAMANIO_NOMBRE;
+            
+    
+            --ESTE IF TIENE QUE VALIDAR : TAMANIO_NOMBRE>2,  GAME_ENCONTRADA=TRUE , EQUIPO_ENCONTRADO = FALSE
+            IF TAMANIO_NOMBRE>2 AND GAME_ENCONTRADA=TRUE AND EQUIPO_ENCONTRADO=FALSE THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
+        END;
+$$
+LANGUAGE plpgsql;
+
+
+--FUNCION PARA INSERTAR DATOS EN LA TABLA tab_equipo CON PARAMETROS DE ENTRADA
+CREATE OR REPLACE FUNCTION fun_insert_equipo(wnom_equipo tab_equipo.nom_equipo%TYPE, wdesc_equipo tab_equipo.desc_equipo%TYPE,
+                            wfoto_equipo tab_equipo.foto_equipo%TYPE,wid_game tab_equipo.id_game%TYPE) RETURNS BOOLEAN AS
+$$
+    DECLARE
+        wnom_equipo_aux tab_equipo.nom_equipo%TYPE;
+        wfoto_equipo_aux tab_equipo.foto_equipo%TYPE;
+        ULTIMOID INTEGER;
+        TAMANIO_EQUIPO tab_equipo.tamanio_equipo%TYPE;
+    BEGIN
+        IF fun_validar_equipo_insert(wnom_equipo,wid_game) THEN
+            SELECT funcion_Retorna_ultmoid('tab_equipo','id_equipo') INTO ULTIMOID;
+            SELECT tab_game.tamanio_equipos INTO TAMANIO_EQUIPO FROM tab_game WHERE tab_game.id_game = wid_game;
+            SELECT UPPER(wnom_equipo) INTO wnom_equipo_aux;
+            SELECT LOWER(wfoto_equipo) INTO wfoto_equipo_aux;
+            INSERT INTO tab_equipo VALUES (ULTIMOID,wnom_equipo_aux, wdesc_equipo,wfoto_equipo_aux,wid_game,TRUE,TAMANIO_EQUIPO,0);
+            IF FOUND THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
+        ELSE
+            RETURN FALSE;
+        END IF;
+    END;
+$$
+LANGUAGE plpgsql;
 
 
   
