@@ -8,6 +8,39 @@
 -- ALL VARCHAR VA EN MAYUSCULA MENOS FOTOS Y ARCHIVOS
 
 
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+--FUNCION IMPORTANTE QUE SE USARA EN TODO LADO: MI AUTO INCREMENTABLE ;)
+--FUNCION PRYMARY KEY (CONSECUTIVO) para cualquier tabala solo poniendo el nombre de la 
+--tabala en comillas y el atrivuto que hace referencia a la primary key en los parametros de la funcion
+--SELECT funcion_Retorna_ultmoid('game','id_game');
+
+CREATE OR REPLACE FUNCTION funcion_Retorna_ultmoid(wnom_tabla VARCHAR,wnom_columna_id VARCHAR)RETURNS INTEGER AS
+
+$$ DECLARE ULTIMOID INTEGER;
+	BEGIN
+		  EXECUTE 'SELECT MAX  ('||wnom_columna_id||')  FROM ' || wnom_tabla INTO ULTIMOID ;
+		
+		--RAISE NOTICE '%',ULTIMOID;
+		IF ULTIMOID IS NULL  THEN
+			ULTIMOID=1;
+			--RAISE NOTICE '%',ULTIMOID;
+			RETURN ULTIMOID;	
+		ELSE
+		ULTIMOID=ULTIMOID+1;
+		--RAISE NOTICE '%',ULTIMOID
+		RETURN ULTIMOID;
+		
+		END IF ;
+	END;
+
+$$
+LANGUAGE PLPGSQL;
+
+
+
+
+
 --FUNCIONES PARA LA TABLA CIUDAD tab_ciudad -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --VALIDAR ATRIBUTOS DE LA TABLA CIUDAD
@@ -449,3 +482,83 @@ LANGUAGE plpgsql;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  
+--FUNCIONES PARA LOS TRIGGERS-------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------
+--FUNCION PARA TRIGGER QUE ME PERMITE LLEVAR EL CONTROL DE CUAL USUARIO HIZO ALGUNA ACTIVIDAD DE MOVIMIENTO DE DISCO EN CUALQUIER TABLA.
+--PARA INSERT Y UPDATE EL TRIGGER TIENE QUE SER "BEFORE"
+--PARA DELETE EL TRIGGER TIENE QUE SER "AFTER"
+--REQUISITOS PARA PODER CREAR ESTA FUNCION:
+--*HABER CREADO ANTES LA FUNCION funcion_Retorna_ultmoid(wnom_tabla VARCHAR,wnom_columna_id VARCHAR)
+CREATE OR REPLACE FUNCTION fun_act_tabla() RETURNS "trigger" AS
+$$
+    DECLARE wid_consec tab_borrados.id_consec%TYPE;
+    BEGIN
+    /*
+    NEW Y OLD SON VARIABLES DE POSTGRES  QUE ACTUAN DIRECTAMENTE EN EL REGISTRO QUE SE ESTA MANIPULANDO, EJEMPLO:
+    SI PODEMOS VER CUANDO ES INSERT "NEW" ESTA MANIPULANDO DIRECTAMENTE UNA COLUMNA DE LA TABLA QUE ESTE MANEJANDO 
+    EL TRIGGER (CUANDO SE CREA EL TRIGGER SE LE DICE A CUAL TABLA Y QUE METODO VA A TRABAJAR ). Y COMO VEMOS,
+    EL ESTA GUARDANDO EN ESA COLUMNA DEL REGISTRO NEW.user_insert = CURRENT_USER; NEW.date_insert  = CURRENT_TIMESTAMP;
+    EL USUARIO Y FECHA QUE VA A INSERTAR (TENIENDO ENCUNTA QUE EL TRIGGER LO USAREMOS COM UN "BEFORE INSERT") ANTES DE
+    INSERTARLO. 
+    */
+        IF TG_OP = 'INSERT' THEN
+           NEW.user_insert = CURRENT_USER;
+           NEW.date_insert  = CURRENT_TIMESTAMP;
+           RETURN NEW;
+        END IF;
+        IF TG_OP = 'UPDATE' THEN
+           NEW.user_update = CURRENT_USER;
+           NEW.date_update= CURRENT_TIMESTAMP;
+           RETURN NEW;
+        END IF;
+        IF TG_OP = 'DELETE' THEN
+            SELECT funcion_Retorna_ultmoid('tab_borrados','id_consec') INTO wid_consec;
+            INSERT INTO tab_borrados VALUES(wid_consec,TG_RELNAME,CURRENT_USER,CURRENT_TIMESTAMP);
+            --TG_RELNAME RETORNA EL NOMBRE DE LA TABLA (VARCHAR) EN LA QUE SE ESTE TRABAJANDO EN EL TRIGGER
+            RETURN OLD; 
+        END IF;
+    END;
+$$
+LANGUAGE PLPGSQL;
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--FUNCION PARA TRIGGER QUE ME PERMITE CREAR TODOS LOS MATCH DEL TORNEO CUANDO SE CREA UN TORNEO NUEVO EN LA TABLA tab_torneo (POST INSERT TORNEO)
+--REQUISITOS PARA PODER CREAR ESTA FUNCION:
+--*HABER CREADO ANTES LA FUNCION funcion_Retorna_ultmoid(wnom_tabla VARCHAR,wnom_columna_id VARCHAR)
+CREATE OR REPLACE FUNCTION fun_crear_match_torneo() RETURNS "trigger" AS
+$$
+    DECLARE ULTIMOID INTEGER;
+    DECLARE wid_torneo tab_match.id_torneo%TYPE := NEW.id_torneo;
+    DECLARE wnom_match tab_match.nom_match%TYPE;
+    DECLARE wdesc_match tab_match.desc_match%TYPE;
+    DECLARE wFecha_match tab_match.fecha_match%TYPE;
+
+    BEGIN
+        FOR i IN 1..NEW.cantidad_match LOOP
+            SELECT funcion_Retorna_ultmoid('tab_match','id_match') INTO ULTIMOID;
+            wnom_match := 'Match '||i;
+            wdesc_match := 'Match NUMERO '||i;
+            wFecha_match := NEW.fecha_inicio_torneo;
+            INSERT INTO tab_match (id_match,id_torneo,nom_match,desc_match,Fecha_match) VALUES (ULTIMOID,wid_torneo,wnom_match,wdesc_match,wFecha_match);
+        END LOOP;
+        RETURN NEW;
+    END;
+$$
+LANGUAGE PLPGSQL;
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

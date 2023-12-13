@@ -54,11 +54,15 @@ SELECT fun_insert_equipo('teaM SRHALOMIP','equipo de league of legends','https:/
 
 -- DML PARA LA TABLA TORNEO-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-SELECT fun_insert_torneo('League of flash','torneo de league of legends',TIMESTAMP '2023-12-24 23:59:59',TIMESTAMP '2023-12-25 23:59:59',
+SELECT fun_insert_torneo('League of mini','torneo de league of legends de 8 equipos',TIMESTAMP '2023-12-24 23:59:59',TIMESTAMP '2023-12-25 23:59:59',
+                        'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',8,100000,1);
+SELECT fun_insert_torneo('League of flash','torneo de league of legends de 16 equipos',TIMESTAMP '2023-12-24 23:59:59',TIMESTAMP '2023-12-25 23:59:59',
                         'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',16,100000,1);
+SELECT fun_insert_torneo('League of low','torneo de league of legends de 32 equipos',TIMESTAMP '2023-12-24 23:59:59',TIMESTAMP '2023-12-25 23:59:59',
+                        'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',32,100000,1);						
 
 
---SELECT * FROM tab_torneo
+--SELECT * FROM tab_torneo;
+--SELECT * FROM tab_match;
 
 
