@@ -49,6 +49,16 @@ SELECT fun_insert_jugador_datospersonales('Christian Torres',24,'3146808848','ch
 SELECT fun_insert_equipo('teaM SRJANIOT','equipo de league of legends','https://fotodeequipo.com',1); --se puede
 SELECT fun_insert_equipo('teaM SRJANIOT','equipo de valorant','https://fotodeequipo.com',2); -- se puede
 SELECT fun_insert_equipo('teaM SRHALOMIP','equipo de league of legends','https://fotodeequipo.com',1); -- se puede
-SELECT fun_insert_equipo('teaM SRJANIOT','equipo de ????????','https://fotodeequipo.com',25); -- no se puede NO EXISTE GAME
-SELECT fun_insert_equipo('teaM SRJANIOT','equipo de league of legends','https://fotodeequipo.com',1); -- no se puede duplicado nombre
+
+--SELECT * FROM tab_equipo;
+
+-- DML PARA LA TABLA TORNEO-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+SELECT fun_insert_torneo('League of flash','torneo de league of legends',TIMESTAMP '2023-12-24 23:59:59',TIMESTAMP '2023-12-25 23:59:59',
+                        'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',16,100000,1);
+
+
+--SELECT * FROM tab_torneo
+
 

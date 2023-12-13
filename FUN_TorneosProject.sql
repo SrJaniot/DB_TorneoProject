@@ -332,6 +332,106 @@ $$
 LANGUAGE plpgsql;
 
 
+--FUNCIONES PARA LA TABLA tab_torneo -------------------------------------------------------------------------------------------------------------------------------------------------------------
+--VALIDAR ATRIBUTOS DE LA TABLA tab_torneo
+CREATE OR REPLACE FUNCTION fun_validar_torneo_insert(wnom_torneo tab_torneo.nom_torneo%TYPE, wdesc_torneo tab_torneo.desc_torneo%TYPE,
+                            wfecha_inicio_torneo tab_torneo.fecha_inicio_torneo%TYPE,wfecha_fin_torneo tab_torneo.fecha_fin_torneo%TYPE,
+                            wfoto_torneo tab_torneo.foto_torneo%TYPE,wpremio_torneo_1 tab_torneo.premio_torneo_1%TYPE,
+                            wpremio_torneo_2 tab_torneo.premio_torneo_2%TYPE,wpremio_torneo_3 tab_torneo.premio_torneo_3%TYPE,
+                            wvideo_explica_torneo tab_torneo.video_explica_torneo%TYPE,wcantidad_equipos tab_torneo.cantidad_equipos%TYPE,
+                            wvalor_dinero_torneo tab_torneo.valor_dinero_torneo%TYPE,
+                            wid_game tab_torneo.id_game%TYPE  ) RETURNS BOOLEAN AS
+$$
+    DECLARE TAMANIO_NOMBRE INTEGER;
+    DECLARE NOMBRE_TORNEO_ENCONTRADO tab_torneo.nom_torneo%TYPE;
+    DECLARE TORNEO_ENCONTRADO BOOLEAN := FALSE;
+    DECLARE ID_GAME_ENCONTRADA tab_torneo.id_game%TYPE;
+    DECLARE GAME_ENCONTRADA BOOLEAN := FALSE;
+    DECLARE FECHA_INICIO DATE;
+    DECLARE FECHA_FIN DATE;
+    DECLARE FECHA_ACTUAL DATE;
+    DECLARE FECHA_INICIO_MAYOR BOOLEAN := FALSE;
+    DECLARE FECHA_FIN_MAYOR BOOLEAN := FALSE;
+    DECLARE EQUIPOS_COMPLETOS_TORNEO BOOLEAN := FALSE;
+    BEGIN
+        SELECT UPPER(wnom_torneo) INTO wnom_torneo;
+        SELECT id_game INTO ID_GAME_ENCONTRADA FROM tab_game WHERE tab_game.id_game = wid_game;
+        IF ID_GAME_ENCONTRADA IS NOT NULL THEN
+            GAME_ENCONTRADA = TRUE;
+            SELECT nom_torneo INTO NOMBRE_TORNEO_ENCONTRADO FROM tab_torneo WHERE tab_torneo.nom_torneo = wnom_torneo AND tab_torneo.id_game = wid_game;
+            IF NOMBRE_TORNEO_ENCONTRADO IS NOT NULL THEN
+                TORNEO_ENCONTRADO = TRUE;
+                RAISE NOTICE 'TORNEO NOMBRE DUPLICADO';
+            END IF;
+        END IF;
+        SELECT CHAR_LENGTH(wnom_torneo)INTO TAMANIO_NOMBRE;
+        SELECT CAST(wfecha_inicio_torneo AS DATE) INTO FECHA_INICIO;
+        SELECT CAST(wfecha_fin_torneo AS DATE) INTO FECHA_FIN;
+        SELECT CURRENT_DATE INTO FECHA_ACTUAL;
+        IF FECHA_INICIO > FECHA_ACTUAL THEN
+            FECHA_INICIO_MAYOR = TRUE;
+        END IF;
+        IF FECHA_FIN > FECHA_ACTUAL AND FECHA_FIN >= FECHA_INICIO THEN
+            FECHA_FIN_MAYOR = TRUE;
+        END IF;
+        IF  wcantidad_equipos = 8 OR wcantidad_equipos=16 OR  wcantidad_equipos=32 THEN
+            EQUIPOS_COMPLETOS_TORNEO = TRUE;
+        END IF;
+
+        --ESTE IF TIENE QUE VALIDAR : TAMANIO_NOMBRE>2,  GAME_ENCONTRADA=TRUE , TORNEO_ENCONTRADO = FALSE, FECHA_INICIO_MAYOR=TRUE, FECHA_FIN_MAYOR=TRUE, EQUIPOS_COMPLETOS_TORNEO=TRUE
+        IF TAMANIO_NOMBRE>2 AND GAME_ENCONTRADA=TRUE AND TORNEO_ENCONTRADO=FALSE AND FECHA_INICIO_MAYOR=TRUE AND FECHA_FIN_MAYOR=TRUE AND EQUIPOS_COMPLETOS_TORNEO=TRUE THEN
+            RETURN TRUE;
+        ELSE
+            RETURN FALSE;
+        END IF;
+    END;
+$$
+LANGUAGE plpgsql;
+ 
+
+
+--FUNCION PARA INSERTAR DATOS EN LA TABLA tab_torneo CON PARAMETROS DE ENTRADA
+CREATE OR REPLACE FUNCTION fun_insert_torneo(wnom_torneo tab_torneo.nom_torneo%TYPE, wdesc_torneo tab_torneo.desc_torneo%TYPE,
+                            wfecha_inicio_torneo tab_torneo.fecha_inicio_torneo%TYPE,wfecha_fin_torneo tab_torneo.fecha_fin_torneo%TYPE,
+                            wfoto_torneo tab_torneo.foto_torneo%TYPE,wpremio_torneo_1 tab_torneo.premio_torneo_1%TYPE,
+                            wpremio_torneo_2 tab_torneo.premio_torneo_2%TYPE,wpremio_torneo_3 tab_torneo.premio_torneo_3%TYPE,
+                            wvideo_explica_torneo tab_torneo.video_explica_torneo%TYPE,wcantidad_equipos tab_torneo.cantidad_equipos%TYPE,
+                            wvalor_dinero_torneo tab_torneo.valor_dinero_torneo%TYPE,
+                            wid_game tab_torneo.id_game%TYPE  ) RETURNS BOOLEAN AS
+$$
+    DECLARE
+        wnom_torneo_aux tab_torneo.nom_torneo%TYPE;
+        wfoto_torneo_aux tab_torneo.foto_torneo%TYPE;
+        wvideo_explica_torneo_aux tab_torneo.video_explica_torneo%TYPE;
+        ULTIMOID INTEGER;
+        cantidad_match tab_torneo.cantidad_match%TYPE;
+
+    BEGIN
+        IF fun_validar_torneo_insert(wnom_torneo,wdesc_torneo,wfecha_inicio_torneo,wfecha_fin_torneo,wfoto_torneo,wpremio_torneo_1,
+                                     wpremio_torneo_2,wpremio_torneo_3,wvideo_explica_torneo,wcantidad_equipos,wvalor_dinero_torneo,wid_game) THEN
+            SELECT funcion_Retorna_ultmoid('tab_torneo','id_torneo') INTO ULTIMOID;
+            SELECT UPPER(wnom_torneo) INTO wnom_torneo_aux;
+            SELECT LOWER(wfoto_torneo) INTO wfoto_torneo_aux;
+            SELECT LOWER(wvideo_explica_torneo) INTO wvideo_explica_torneo_aux;
+            cantidad_match := wcantidad_equipos;
+            
+            INSERT INTO tab_torneo VALUES (ULTIMOID,wnom_torneo_aux, wdesc_torneo,wfecha_inicio_torneo,wfecha_fin_torneo,wfoto_torneo_aux,
+                                           wpremio_torneo_1,wpremio_torneo_2,wpremio_torneo_3,wvideo_explica_torneo_aux,wcantidad_equipos,cantidad_match,
+                                           wvalor_dinero_torneo,wid_game,TRUE);
+            IF FOUND THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
+        ELSE
+            RETURN FALSE;
+        END IF;
+    END;
+$$
+LANGUAGE plpgsql;
+
+   
+
   
 
 
