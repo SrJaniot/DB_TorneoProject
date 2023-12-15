@@ -39,10 +39,23 @@ SELECT fun_insert_jugador_datospersonales('esteban janiot',24,'3152901731','este
                                           'señor janiot','oro','https://www.op.gg/summoners/lan/Señor%20Janiot-LAN',1);
 SELECT fun_insert_jugador_datospersonales('Christian Torres',24,'3146808848','christianalexis399@gmail.com','https://fotodechristian.com',1,
                                           'Halomip','Esmeralda ','https://www.op.gg/summoners/lan/Halomip-LAN',1);
+SELECT fun_insert_jugador_datospersonales('Vanessa Sanabria',24,'3052295353','vanessa.sanabriia@gmail.com','https://fotodechristian.com',1,
+                                          'señora janiot','challenger ','https://www.op.gg/summoners/Señora%20Janiot-LAN',1);
+SELECT fun_insert_jugador_datospersonales('prueba1',24,'123456789','prueba.1@gmail.com','https://fotodechristian.com',1,
+                                          'prueba1','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
+SELECT fun_insert_jugador_datospersonales('prueba2',24,'123456789','prueba.2@gmail.com','https://fotodechristian.com',1,
+                                          'prueba2','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
+SELECT fun_insert_jugador_datospersonales('prueba3',24,'123456789','prueba.3@gmail.com','https://fotodechristian.com',1,
+                                          'prueba3','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
+SELECT fun_insert_jugador_datospersonales('prueba4',24,'123456789','prueba.4@gmail.com','https://fotodechristian.com',1,
+                                          'prueba4','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
+SELECT fun_insert_jugador_datospersonales('prueba5',24,'123456789','prueba.5@gmail.com','https://fotodechristian.com',1,
+                                          'prueba5','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
+
 
 
 --SELECT * FROM tab_jugador;
---SELECT * FROM tab_datospersonales
+--SELECT * FROM tab_datospersonales;
 
 
 -- DML PARA LA TABLA EQUIPO-------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,5 +77,20 @@ SELECT fun_insert_torneo('League of low','torneo de league of legends de 32 equi
 
 --SELECT * FROM tab_torneo;
 --SELECT * FROM tab_match;
+
+
+
+-- PRUEBAS VINCULAR JUGADOR A EQUIPO-------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT fun_insert_jugador_equipo(7,1);
+
+--SELECT * FROM tab_jugador_equipo;
+
+
+
+--PRUEBAS VINCULAR EQUIPO A TORNEO------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+SELECT fun_insert_equipo_torneo(2,4);
+
+--SELECT * FROM tab_equipo_torneo;
+
 
 

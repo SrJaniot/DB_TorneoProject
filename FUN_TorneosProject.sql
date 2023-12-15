@@ -147,6 +147,9 @@ $$
      DECLARE ES_CORREO BOOLEAN;
      DECLARE ID_CIUDAD_ENCONTRADA tab_ciudad.id_ciudad%TYPE;
      DECLARE CIUDAD_ENCONTRADA BOOLEAN := FALSE;
+    DECLARE CORREO_ENCONTRADO tab_datosPersonales.correo_jugador%TYPE;
+     DECLARE CORREO_DUPLICADO BOOLEAN := FALSE;
+
 
     BEGIN
         SELECT CHAR_LENGTH(wnombre_jugador)INTO TAMANIO_NOMBRE;
@@ -160,10 +163,17 @@ $$
         IF ID_CIUDAD_ENCONTRADA IS NOT NULL THEN
              CIUDAD_ENCONTRADA = TRUE;
         END IF;
+        wcorreo_jugador = LOWER(wcorreo_jugador);
+
+        SELECT correo_jugador INTO CORREO_ENCONTRADO FROM tab_datosPersonales WHERE tab_datosPersonales.correo_jugador = wcorreo_jugador;
+        IF CORREO_ENCONTRADO IS NOT NULL THEN
+             CORREO_DUPLICADO = TRUE;
+             RAISE NOTICE 'CORREO DUPLICADO';
+        END IF;
 
 
-        --ESTE IF TIENE QUE VALIDAR : TAMANIONOMBRE>2, WEDAD_JUGADOR=>18  TAMANIO_NUM_TELEFONO=10,ES_CORREO=TRUE, CIUDAD_ENCONTRADA=TRUE 
-        IF TAMANIO_NOMBRE>2 AND wedad_jugador>=18 AND TAMANIO_NUM_TELEFONO=10 AND ES_CORREO AND CIUDAD_ENCONTRADA  THEN
+        --ESTE IF TIENE QUE VALIDAR : TAMANIONOMBRE>2, WEDAD_JUGADOR=>18  TAMANIO_NUM_TELEFONO=10,ES_CORREO=TRUE, CIUDAD_ENCONTRADA=TRUE , CORREO_DUPLICADO=FALSE
+        IF TAMANIO_NOMBRE>2 AND wedad_jugador>=18 AND TAMANIO_NUM_TELEFONO=10 AND ES_CORREO AND CIUDAD_ENCONTRADA AND CORREO_DUPLICADO=FALSE  THEN
             RETURN TRUE;
         ELSE
             RETURN FALSE;
@@ -200,6 +210,7 @@ $$
       
         IF fun_validar_datosPersonales_insert(wnombre_jugador_aux, wedad_jugador,wtel_jugador,wcorreo_jugador_aux,wfoto_perfil_jugador,wid_ciudad) THEN
             RAISE NOTICE 'ATRIBUTOS INSERTADOS CORRECTAMENTE';
+
             INSERT INTO tab_datosPersonales VALUES (WULTIMOID,wnombre_jugador_aux, wedad_jugador,wtel_jugador,wcorreo_jugador_aux,wfoto_perfil_jugador,wid_ciudad);
             IF FOUND THEN
                 RAISE NOTICE 'ATRIBUTOS INSERTADOS CORRECTAMENTE';
@@ -230,6 +241,9 @@ $$
      DECLARE TAMANIO_LIGAJUGADOR INTEGER;
      DECLARE ID_GAME_ENCONTRADA tab_jugador.id_datos%TYPE;
      DECLARE GAME_ENCONTRADA BOOLEAN := FALSE;
+     DECLARE NICKNAME_ENCONTRADO tab_jugador.nickname_jugador%TYPE;
+     DECLARE NICKNAME_DUPLICADO BOOLEAN := FALSE;
+
 
 
     BEGIN
@@ -243,9 +257,19 @@ $$
         IF ID_GAME_ENCONTRADA IS NOT NULL THEN
              GAME_ENCONTRADA = TRUE;
         END IF;
+        wnickname_jugador = UPPER(wnickname_jugador);
 
-        --ESTE IF TIENE QUE VALIDAR : DATOS_ENCONTRADA=TRUE,  TAMANIO_NICKNAME>2  TAMANIO_LIGAJUGADOR>2,  GAME_ENCONTRADA=TRUE 
-        IF DATOS_ENCONTRADA=TRUE AND TAMANIO_NICKNAME>2 AND TAMANIO_LIGAJUGADOR>2 AND GAME_ENCONTRADA=TRUE  THEN
+        SELECT nickname_jugador INTO NICKNAME_ENCONTRADO FROM tab_jugador WHERE tab_jugador.nickname_jugador = wnickname_jugador;
+
+        
+
+        IF NICKNAME_ENCONTRADO IS NOT NULL THEN
+             NICKNAME_DUPLICADO = TRUE;
+             RAISE NOTICE 'NICKNAME DUPLICADO';
+        END IF;
+
+        --ESTE IF TIENE QUE VALIDAR : DATOS_ENCONTRADA=TRUE,  TAMANIO_NICKNAME>2  TAMANIO_LIGAJUGADOR>2,  GAME_ENCONTRADA=TRUE, NICKNAME_DUPLICADO=FALSE
+        IF DATOS_ENCONTRADA=TRUE AND TAMANIO_NICKNAME>2 AND TAMANIO_LIGAJUGADOR>2 AND GAME_ENCONTRADA=TRUE AND NICKNAME_DUPLICADO=FALSE  THEN
             RETURN TRUE;
         ELSE
             RETURN FALSE;
@@ -462,6 +486,159 @@ $$
     END;
 $$
 LANGUAGE plpgsql;
+
+
+-- FUNCION QUE ME PERMITE VINCULAR UN JUGADOR A UN EQUIPO EN tab_jugador_equipo
+CREATE OR REPLACE FUNCTION fun_insert_jugador_equipo(wid_jugador tab_jugador_equipo.id_jugador%TYPE,
+                                 wid_equipo tab_jugador_equipo.id_equipo%TYPE) RETURNS BOOLEAN AS
+$$
+    DECLARE
+        ULTIMOID INTEGER;
+        ID_JUGADOR_ENCONTRADO tab_jugador_equipo.id_jugador%TYPE;
+        JUGADOR_ENCONTRADO BOOLEAN := FALSE;
+        ID_EQUIPO_ENCONTRADO tab_jugador_equipo.id_equipo%TYPE;
+        EQUIPO_ENCONTRADO BOOLEAN := FALSE;
+        ID_JUGADOR_EQUIPO_ENCONTRADO tab_jugador_equipo.id_jugador%TYPE;
+        JUGADOR_EQUIPO_ENCONTRADO BOOLEAN := FALSE;
+        TAMANIO_EQUIPO tab_equipo.tamanio_equipo%TYPE;
+        CANTIDAD_JUGADORES_EQUIPO INTEGER;
+        CANTIDAD_JUGADORES_EQUIPO_MAYOR BOOLEAN := FALSE;
+        ID_GAME_JUGADOR tab_jugador.id_game%TYPE;
+        ID_GAME_EQUIPO tab_equipo.id_game%TYPE;
+        GAME_IGUALES BOOLEAN := FALSE;
+    BEGIN
+        SELECT funcion_Retorna_ultmoid('tab_jugador_equipo','id_jugador_equipo') INTO ULTIMOID;
+        --valida si el jugador existe
+        SELECT id_jugador INTO ID_JUGADOR_ENCONTRADO FROM tab_jugador WHERE tab_jugador.id_jugador = wid_jugador;
+        IF ID_JUGADOR_ENCONTRADO IS NOT NULL THEN
+            JUGADOR_ENCONTRADO = TRUE;
+        END IF;
+        --valida si el equipo existe
+        SELECT id_equipo INTO ID_EQUIPO_ENCONTRADO FROM tab_equipo WHERE tab_equipo.id_equipo = wid_equipo;
+        IF ID_EQUIPO_ENCONTRADO IS NOT NULL THEN
+            EQUIPO_ENCONTRADO = TRUE;
+        END IF;
+        --valida si el jugador ya esta en el equipo
+        SELECT id_jugador INTO ID_JUGADOR_EQUIPO_ENCONTRADO FROM tab_jugador_equipo WHERE tab_jugador_equipo.id_jugador = wid_jugador AND tab_jugador_equipo.id_equipo = wid_equipo;
+        IF ID_JUGADOR_EQUIPO_ENCONTRADO IS NOT NULL THEN
+            JUGADOR_EQUIPO_ENCONTRADO = TRUE;
+        END IF;
+
+        SELECT tab_equipo.tamanio_equipo INTO TAMANIO_EQUIPO FROM tab_equipo WHERE tab_equipo.id_equipo = wid_equipo;
+        SELECT COUNT(*) INTO CANTIDAD_JUGADORES_EQUIPO FROM tab_jugador_equipo WHERE tab_jugador_equipo.id_equipo = wid_equipo;
+        IF CANTIDAD_JUGADORES_EQUIPO >= TAMANIO_EQUIPO THEN
+            CANTIDAD_JUGADORES_EQUIPO_MAYOR = TRUE;
+        END IF; 
+        SELECT tab_jugador.id_game INTO ID_GAME_JUGADOR FROM tab_jugador WHERE tab_jugador.id_jugador = wid_jugador;
+        SELECT tab_equipo.id_game INTO ID_GAME_EQUIPO FROM tab_equipo WHERE tab_equipo.id_equipo = wid_equipo;
+        IF ID_GAME_JUGADOR = ID_GAME_EQUIPO THEN
+            GAME_IGUALES = TRUE;
+        END IF;
+
+
+
+        IF JUGADOR_ENCONTRADO AND EQUIPO_ENCONTRADO AND NOT JUGADOR_EQUIPO_ENCONTRADO AND NOT CANTIDAD_JUGADORES_EQUIPO_MAYOR AND GAME_IGUALES THEN
+            INSERT INTO tab_jugador_equipo VALUES (ULTIMOID,wid_jugador,wid_equipo,TRUE);
+            IF FOUND THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
+        ELSE
+            RETURN FALSE;
+        END IF;
+    END; 
+
+$$
+LANGUAGE plpgsql;
+
+
+--FUNCION QUE PERMINTE VINCULAR UN EQUIPO A UN TORNEO EN tab_equipo_torneo
+CREATE OR REPLACE FUNCTION fun_insert_equipo_torneo(wid_equipo tab_equipo_torneo.id_equipo%TYPE,
+                                 wid_torneo tab_equipo_torneo.id_torneo%TYPE) RETURNS BOOLEAN AS
+$$
+    DECLARE
+        ULTIMOID INTEGER;
+        ID_EQUIPO_ENCONTRADO tab_equipo_torneo.id_equipo%TYPE;
+        EQUIPO_ENCONTRADO BOOLEAN := FALSE;
+        ID_TORNEO_ENCONTRADO tab_equipo_torneo.id_torneo%TYPE;
+        TORNEO_ENCONTRADO BOOLEAN := FALSE;
+        ID_EQUIPO_TORNEO_ENCONTRADO tab_equipo_torneo.id_equipo%TYPE;
+        EQUIPO_TORNEO_ENCONTRADO BOOLEAN := FALSE;
+        TAMANIO_JUGADORES_EQUIPO tab_equipo.tamanio_equipo%TYPE;
+        TAMANIO_JUGADORES_GAME tab_game.tamanio_equipos%TYPE;
+        cantidad_equipos tab_torneo.cantidad_equipos%TYPE;
+        CANTIDAD_EQUIPOS_TORNEO INTEGER;
+        CANTIDAD_EQUIPOS_TORNEO_MAYOR BOOLEAN := FALSE;
+        ID_GAME_EQUIPO tab_equipo.id_game%TYPE;
+        ID_GAME_TORNEO tab_torneo.id_game%TYPE;
+        GAME_IGUALES BOOLEAN := FALSE;
+    BEGIN
+        SELECT funcion_Retorna_ultmoid('tab_equipo_torneo','id_equipo_torneo') INTO ULTIMOID;
+        --valida si el equipo existe
+        SELECT id_equipo INTO ID_EQUIPO_ENCONTRADO FROM tab_equipo WHERE tab_equipo.id_equipo = wid_equipo;
+        IF ID_EQUIPO_ENCONTRADO IS NOT NULL THEN
+            EQUIPO_ENCONTRADO = TRUE;
+        END IF;
+        --valida si el torneo existe
+        SELECT id_torneo INTO ID_TORNEO_ENCONTRADO FROM tab_torneo WHERE tab_torneo.id_torneo = wid_torneo;
+        IF ID_TORNEO_ENCONTRADO IS NOT NULL THEN
+            TORNEO_ENCONTRADO = TRUE;
+        END IF;
+        --valida si el equipo ya esta en el torneo
+        SELECT id_equipo INTO ID_EQUIPO_TORNEO_ENCONTRADO FROM tab_equipo_torneo WHERE tab_equipo_torneo.id_equipo = wid_equipo AND tab_equipo_torneo.id_torneo = wid_torneo;
+        IF ID_EQUIPO_TORNEO_ENCONTRADO IS NOT NULL THEN
+            EQUIPO_TORNEO_ENCONTRADO = TRUE;
+        END IF;
+
+        --VALIDACIONES DE CANTIDAD DE EQUIPOS EN EL TORNEO Y TAMANIO DE EQUIPO EN EL TORNEO
+        SELECT tab_equipo.id_game INTO ID_GAME_EQUIPO FROM tab_equipo WHERE tab_equipo.id_equipo = wid_equipo;
+
+        SELECT COUNT(*) INTO TAMANIO_JUGADORES_EQUIPO FROM tab_jugador_equipo WHERE tab_jugador_equipo.id_equipo = wid_equipo;
+        SELECT tab_game.tamanio_equipos INTO TAMANIO_JUGADORES_GAME FROM tab_game WHERE tab_game.id_game = ID_GAME_EQUIPO;
+
+
+        SELECT tab_torneo.cantidad_equipos INTO cantidad_equipos FROM tab_torneo WHERE tab_torneo.id_torneo = wid_torneo;
+        SELECT COUNT(*) INTO CANTIDAD_EQUIPOS_TORNEO FROM tab_equipo_torneo WHERE tab_equipo_torneo.id_torneo = wid_torneo;
+        IF CANTIDAD_EQUIPOS_TORNEO >= cantidad_equipos THEN
+            CANTIDAD_EQUIPOS_TORNEO_MAYOR = TRUE;
+        END IF;
+        SELECT tab_equipo.id_game INTO ID_GAME_EQUIPO FROM tab_equipo WHERE tab_equipo.id_equipo = wid_equipo;
+        SELECT tab_torneo.id_game INTO ID_GAME_TORNEO FROM tab_torneo WHERE tab_torneo.id_torneo = wid_torneo;
+        IF ID_GAME_EQUIPO = ID_GAME_TORNEO THEN
+            GAME_IGUALES = TRUE;
+        END IF;
+
+        RAISE NOTICE 'EQUIPO ENCONTRADO: %',EQUIPO_ENCONTRADO;
+        RAISE NOTICE 'TORNEO ENCONTRADO: %',TORNEO_ENCONTRADO;
+        RAISE NOTICE 'EQUIPO TORNEO ENCONTRADO: %',EQUIPO_TORNEO_ENCONTRADO;
+        RAISE NOTICE 'CANTIDAD_EQUIPOS_TORNEO_MAYOR: %',CANTIDAD_EQUIPOS_TORNEO_MAYOR;
+        RAISE NOTICE 'GAME_IGUALES: %',GAME_IGUALES;
+        RAISE NOTICE 'TAMANIO_JUGADORES_EQUIPO: %',TAMANIO_JUGADORES_EQUIPO;
+        RAISE NOTICE 'TAMANIO_JUGADORES_GAME: %',TAMANIO_JUGADORES_GAME;
+
+
+
+        IF EQUIPO_ENCONTRADO AND TORNEO_ENCONTRADO AND NOT EQUIPO_TORNEO_ENCONTRADO AND NOT CANTIDAD_EQUIPOS_TORNEO_MAYOR AND 
+        GAME_IGUALES AND TAMANIO_JUGADORES_EQUIPO=TAMANIO_JUGADORES_GAME THEN
+            INSERT INTO tab_equipo_torneo VALUES (ULTIMOID,wid_equipo,wid_torneo,TRUE);
+            IF FOUND THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
+        ELSE
+            RETURN FALSE;
+        END IF;
+    END;
+$$
+LANGUAGE plpgsql;
+
+
+
+
+
+
 
    
 
