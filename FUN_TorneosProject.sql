@@ -7,6 +7,95 @@
 
 -- ALL VARCHAR VA EN MAYUSCULA MENOS FOTOS Y ARCHIVOS
 
+--DROPEOS DE TRIGGERS SI EXISTEN-------------------------------------------------------------------------------------------------------------------------------------------------------------   
+DROP TRIGGER IF EXISTS tri_delete_tabla_ciudad ON tab_ciudad;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_ciudad ON tab_ciudad;
+DROP TRIGGER IF EXISTS tri_delete_tabla_game ON tab_game;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_game ON tab_game;
+DROP TRIGGER IF EXISTS tri_delete_tabla_datosPersonales ON tab_datosPersonales;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_datosPersonales ON tab_datosPersonales;
+DROP TRIGGER IF EXISTS tri_delete_tabla_jugador ON tab_jugador;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_jugador ON tab_jugador;
+DROP TRIGGER IF EXISTS tri_delete_tabla_equipo ON tab_equipo;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_equipo ON tab_equipo;
+DROP TRIGGER IF EXISTS tri_delete_tabla_torneo ON tab_torneo;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_torneo ON tab_torneo;
+DROP TRIGGER IF EXISTS tri_crear_match_torneo ON tab_torneo;
+DROP TRIGGER IF EXISTS tri_delete_tabla_match ON tab_match;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_match ON tab_match;
+DROP TRIGGER IF EXISTS tri_delete_tabla_jugador_equipo ON tab_jugador_equipo;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_jugador_equipo ON tab_jugador_equipo;
+DROP TRIGGER IF EXISTS tri_delete_tabla_equipo_torneo ON tab_equipo_torneo;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_equipo_torneo ON tab_equipo_torneo;
+DROP TRIGGER IF EXISTS tri_delete_tabla_jugador_torneo ON tab_jugador_torneo;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_jugador_torneo ON tab_jugador_torneo;
+DROP TRIGGER IF EXISTS tri_delete_tabla_equipo_match ON tab_equipo_match;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_equipo_match ON tab_equipo_match;
+DROP TRIGGER IF EXISTS tri_delete_tabla_jugador_match ON tab_jugador_match;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_jugador_match ON tab_jugador_match;
+DROP TRIGGER IF EXISTS tri_delete_tabla_jugador_equipo_match ON tab_jugador_equipo_match;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_jugador_equipo_match ON tab_jugador_equipo_match;
+DROP TRIGGER IF EXISTS tri_delete_tabla_jugador_equipo_torneo ON tab_jugador_equipo_torneo;
+
+
+--DROPEO DE FUNCIONES SI EXISTEN-------------------------------------------------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS fun_validar_ciudad_insert(wnom_ciudad tab_ciudad.nom_ciudad%TYPE, wdesc_ciudad tab_ciudad.desc_ciudad%TYPE);
+DROP FUNCTION IF EXISTS fun_insert_ciudad(wnom_ciudad tab_ciudad.nom_ciudad%TYPE, wdesc_ciudad tab_ciudad.desc_ciudad%TYPE);
+DROP FUNCTION IF EXISTS fun_validar_game_insert(wnom_game tab_game.nom_game%TYPE, wdesc_game tab_game.desc_game%TYPE,
+                             wtamanio_equipos tab_game.tamanio_equipos%TYPE,wfoto_logo_game tab_game.foto_logo_game%TYPE);
+DROP FUNCTION IF EXISTS fun_insert_game(wnom_game tab_game.nom_game%TYPE, wdesc_game tab_game.desc_game%TYPE,
+                                wtamanio_equipos tab_game.tamanio_equipos%TYPE,wfoto_logo_game tab_game.foto_logo_game%TYPE);
+DROP FUNCTION IF EXISTS fun_validar_datosPersonales_insert(wnombre_jugador tab_datosPersonales.nombre_jugador%TYPE, wedad_jugador tab_datosPersonales.edad_jugador%TYPE,
+                                wtel_jugador tab_datosPersonales.tel_jugador%TYPE,wcorreo_jugador tab_datosPersonales.correo_jugador%TYPE,
+                                wfoto_perfil_jugador tab_datosPersonales.foto_perfil_jugador%TYPE,wid_ciudad tab_datosPersonales.id_ciudad%type);
+DROP FUNCTION IF EXISTS fun_insert_datosPersonales(WULTIMOID tab_datosPersonales.id_datos%TYPE,wnombre_jugador tab_datosPersonales.nombre_jugador%TYPE,
+                                wedad_jugador tab_datosPersonales.edad_jugador%TYPE,
+                                wtel_jugador tab_datosPersonales.tel_jugador%TYPE,wcorreo_jugador tab_datosPersonales.correo_jugador%TYPE,
+                                wfoto_perfil_jugador tab_datosPersonales.foto_perfil_jugador%TYPE,wid_ciudad tab_datosPersonales.id_ciudad%type);   
+DROP FUNCTION IF EXISTS fun_validar_jugador_insert(wid_datos tab_jugador.id_datos%TYPE, wnickname_jugador tab_jugador.nickname_jugador%TYPE,
+                                wliga_jugador tab_jugador.liga_jugador%TYPE,wlink_cuenta_jugador tab_jugador.link_cuenta_jugador%TYPE,
+                                wid_game tab_jugador.id_game%TYPE);
+DROP FUNCTION IF EXISTS fun_insert_jugador_datospersonales(wnombre_jugador tab_datosPersonales.nombre_jugador%TYPE, wedad_jugador tab_datosPersonales.edad_jugador%TYPE,
+                                wtel_jugador tab_datosPersonales.tel_jugador%TYPE,wcorreo_jugador tab_datosPersonales.correo_jugador%TYPE,
+                                wfoto_perfil_jugador tab_datosPersonales.foto_perfil_jugador%TYPE,wid_ciudad tab_datosPersonales.id_ciudad%type,
+
+                                wnickname_jugador tab_jugador.nickname_jugador%TYPE,
+                                wliga_jugador tab_jugador.liga_jugador%TYPE,wlink_cuenta_jugador tab_jugador.link_cuenta_jugador%TYPE,
+                                wid_game tab_jugador.id_game%TYPE);
+DROP FUNCTION IF EXISTS fun_validar_equipo_insert(wnom_equipo tab_equipo.nom_equipo%TYPE, 
+                                wid_game tab_equipo.id_game%TYPE);
+DROP FUNCTION IF EXISTS fun_insert_equipo(wnom_equipo tab_equipo.nom_equipo%TYPE, wdesc_equipo tab_equipo.desc_equipo%TYPE,
+                                wfoto_equipo tab_equipo.foto_equipo%TYPE,wid_game tab_equipo.id_game%TYPE);
+DROP FUNCTION IF EXISTS fun_validar_torneo_insert(wnom_torneo tab_torneo.nom_torneo%TYPE, wdesc_torneo tab_torneo.desc_torneo%TYPE,
+                                wfecha_inicio_torneo tab_torneo.fecha_inicio_torneo%TYPE,wfecha_fin_torneo tab_torneo.fecha_fin_torneo%TYPE,
+                                wfoto_torneo tab_torneo.foto_torneo%TYPE,wpremio_torneo_1 tab_torneo.premio_torneo_1%TYPE,
+                                wpremio_torneo_2 tab_torneo.premio_torneo_2%TYPE,wpremio_torneo_3 tab_torneo.premio_torneo_3%TYPE,
+                                wvideo_explica_torneo tab_torneo.video_explica_torneo%TYPE,wcantidad_equipos tab_torneo.cantidad_equipos%TYPE,
+                                wvalor_dinero_torneo tab_torneo.valor_dinero_torneo%TYPE,
+                                wid_game tab_torneo.id_game%TYPE  );
+DROP FUNCTION IF EXISTS fun_insert_torneo(wnom_torneo tab_torneo.nom_torneo%TYPE, wdesc_torneo tab_torneo.desc_torneo%TYPE,
+                                wfecha_inicio_torneo tab_torneo.fecha_inicio_torneo%TYPE,wfecha_fin_torneo tab_torneo.fecha_fin_torneo%TYPE,
+                                wfoto_torneo tab_torneo.foto_torneo%TYPE,wpremio_torneo_1 tab_torneo.premio_torneo_1%TYPE,
+                                wpremio_torneo_2 tab_torneo.premio_torneo_2%TYPE,wpremio_torneo_3 tab_torneo.premio_torneo_3%TYPE,
+                                wvideo_explica_torneo tab_torneo.video_explica_torneo%TYPE,wcantidad_equipos tab_torneo.cantidad_equipos%TYPE,
+                                wvalor_dinero_torneo tab_torneo.valor_dinero_torneo%TYPE,
+                                wid_game tab_torneo.id_game%TYPE  );
+DROP FUNCTION IF EXISTS fun_validar_match_insert(wid_torneo tab_match.id_torneo%TYPE, wid_equipo1 tab_match.id_equipo1%TYPE,
+                                wid_equipo2 tab_match.id_equipo2%TYPE,wfecha_match tab_match.fecha_match%TYPE,
+                                wvideo_match tab_match.video_match%TYPE,wganador_match tab_match.ganador_match%TYPE,
+                                wperdedor_match tab_match.perdedor_match%TYPE);
+DROP FUNCTION IF EXISTS fun_insert_match(wid_torneo tab_match.id_torneo%TYPE, wid_equipo1 tab_match.id_equipo1%TYPE,
+                                wid_equipo2 tab_match.id_equipo2%TYPE,wfecha_match tab_match.fecha_match%TYPE,
+                                wvideo_match tab_match.video_match%TYPE,wganador_match tab_match.ganador_match%TYPE,
+                                wperdedor_match tab_match.perdedor_match%TYPE); 
+DROP FUNCTION IF EXISTS fun_validar_jugador_equipo_insert(wid_jugador tab_jugador_equipo.id_jugador%TYPE, wid_equipo tab_jugador_equipo.id_equipo%TYPE);
+DROP FUNCTION IF EXISTS fun_insert_jugador_equipo(wid_jugador tab_jugador_equipo.id_jugador%TYPE, wid_equipo tab_jugador_equipo.id_equipo%TYPE);
+DROP FUNCTION IF EXISTS fun_validar_equipo_torneo_insert(wid_equipo tab_equipo_torneo.id_equipo%TYPE, wid_torneo tab_equipo_torneo.id_torneo%TYPE);
+DROP FUNCTION IF EXISTS fun_insert_equipo_torneo(wid_equipo tab_equipo_torneo.id_equipo%TYPE, wid_torneo tab_equipo_torneo.id_torneo%TYPE);
+DROP FUNCTION IF EXISTS fun_crear_match_torneo();
+DROP FUNCTION IF EXISTS fun_act_tabla();
+
+
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -448,15 +537,22 @@ LANGUAGE plpgsql;
 
 
 --FUNCION PARA INSERTAR DATOS EN LA TABLA tab_torneo CON PARAMETROS DE ENTRADA
+--defienendo el retorno de la funcion PARA DESPUES CONVERTIRLO EN JSON
+DROP TYPE IF EXISTS torneo_result;
+CREATE TYPE torneo_result AS (
+    id_torneo INTEGER,
+    resultado BOOLEAN
+);
 CREATE OR REPLACE FUNCTION fun_insert_torneo(wnom_torneo tab_torneo.nom_torneo%TYPE, wdesc_torneo tab_torneo.desc_torneo%TYPE,
                             wfecha_inicio_torneo tab_torneo.fecha_inicio_torneo%TYPE,wfecha_fin_torneo tab_torneo.fecha_fin_torneo%TYPE,
                             wfoto_torneo tab_torneo.foto_torneo%TYPE,wpremio_torneo_1 tab_torneo.premio_torneo_1%TYPE,
                             wpremio_torneo_2 tab_torneo.premio_torneo_2%TYPE,wpremio_torneo_3 tab_torneo.premio_torneo_3%TYPE,
                             wvideo_explica_torneo tab_torneo.video_explica_torneo%TYPE,wcantidad_equipos tab_torneo.cantidad_equipos%TYPE,
                             wvalor_dinero_torneo tab_torneo.valor_dinero_torneo%TYPE,
-                            wid_game tab_torneo.id_game%TYPE  ) RETURNS BOOLEAN AS
+                            wid_game tab_torneo.id_game%TYPE  ) RETURNS json AS
 $$
     DECLARE
+        RETORNO torneo_result;
         wnom_torneo_aux tab_torneo.nom_torneo%TYPE;
         wfoto_torneo_aux tab_torneo.foto_torneo%TYPE;
         wvideo_explica_torneo_aux tab_torneo.video_explica_torneo%TYPE;
@@ -476,12 +572,18 @@ $$
                                            wpremio_torneo_1,wpremio_torneo_2,wpremio_torneo_3,wvideo_explica_torneo_aux,wcantidad_equipos,cantidad_match,
                                            wvalor_dinero_torneo,wid_game,TRUE);
             IF FOUND THEN
-                RETURN TRUE;
+                RETORNO.id_torneo := ULTIMOID;
+                RETORNO.resultado := TRUE;
+                RETURN row_to_json(RETORNO);
             ELSE
-                RETURN FALSE;
+                RETORNO.resultado := FALSE;
+                RETORNO.id_torneo := NULL;
+                RETURN row_to_json(RETORNO);
             END IF;
         ELSE
-            RETURN FALSE;
+            RETORNO.resultado := FALSE;
+            RETORNO.id_torneo := NULL;
+            RETURN row_to_json(RETORNO);
         END IF;
     END;
 $$
