@@ -127,7 +127,7 @@ CREATE TABLE tab_torneo -- TORNEO
     cantidad_match          INTEGER     NOT NULL,
     valor_dinero_torneo     INTEGER     NOT NULL,
     id_game                 INTEGER     NOT NULL CHECK(id_game>0),
-    estado_torneo           BOOLEAN     NOT NULL default TRUE, -- TRUE = ACTIVO, FALSE = INACTIVO
+    estado_torneo           INTEGER     NOT NULL default 1, -- 1 = ACTIVO, 2 = EN JUEGO , 3 = FINALIZADO
     user_insert             VARCHAR     NOT NULL,
     user_update             VARCHAR,
     date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL,

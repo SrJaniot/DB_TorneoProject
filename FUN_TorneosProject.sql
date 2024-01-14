@@ -570,7 +570,7 @@ $$
             
             INSERT INTO tab_torneo VALUES (ULTIMOID,wnom_torneo_aux, wdesc_torneo,wfecha_inicio_torneo,wfecha_fin_torneo,wfoto_torneo_aux,
                                            wpremio_torneo_1,wpremio_torneo_2,wpremio_torneo_3,wvideo_explica_torneo_aux,wcantidad_equipos,cantidad_match,
-                                           wvalor_dinero_torneo,wid_game,TRUE);
+                                           wvalor_dinero_torneo,wid_game,1);
             IF FOUND THEN
                 RETORNO.id_torneo := ULTIMOID;
                 RETORNO.resultado := TRUE;
