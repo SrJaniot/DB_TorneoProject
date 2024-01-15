@@ -100,14 +100,16 @@ CREATE TABLE tab_equipo -- EQUIPO
     id_game                 INTEGER     NOT NULL CHECK(id_game>0),
     estado_equipo           BOOLEAN     NOT NULL default TRUE, -- TRUE = ACTIVO, FALSE = INACTIVO
     tamanio_equipo          INTEGER     NOT NULL,
+    lider_equipo            INTEGER     NOT NULL,
     numero_torneos_ganados  INTEGER     NOT NULL default 0,
-    user_insert             VARCHAR     NOT NULL,
+    user_insert             VARCHAR     NOT NULL  ,
     user_update             VARCHAR,
-    date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL ,
     date_update             TIMESTAMP WITHOUT TIME ZONE ,
 
     PRIMARY KEY(id_equipo),
-    FOREIGN KEY(id_game) REFERENCES tab_game(id_game)
+    FOREIGN KEY(id_game) REFERENCES tab_game(id_game),
+    FOREIGN KEY(lider_equipo) REFERENCES tab_jugador(id_jugador)
 );
 
 

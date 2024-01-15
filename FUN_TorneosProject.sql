@@ -416,13 +416,19 @@ LANGUAGE plpgsql;
 --FUNCIONES PARA LA TABLA tab_equipo -------------------------------------------------------------------------------------------------------------------------------------------------------------
 --VALIDAR ATRIBUTOS DE LA TABLA tab_equipo
 CREATE OR REPLACE FUNCTION fun_validar_equipo_insert(wnom_equipo tab_equipo.nom_equipo%TYPE, 
-                            wid_game tab_equipo.id_game%TYPE) RETURNS BOOLEAN AS
+                            wlider_equipo tab_equipo.lider_equipo%TYPE,wid_game tab_equipo.id_game%TYPE) RETURNS BOOLEAN AS
 $$     
         DECLARE TAMANIO_NOMBRE INTEGER;
         DECLARE NOMBRE_EQUIPO_ENCONTRADO tab_equipo.nom_equipo%TYPE;
         DECLARE EQUIPO_ENCONTRADO BOOLEAN := FALSE;
         DECLARE ID_GAME_ENCONTRADA tab_equipo.id_game%TYPE;
         DECLARE GAME_ENCONTRADA BOOLEAN := FALSE;
+
+        DECLARE ID_LIDER_ENCONTRADO_TABJUGADOR tab_jugador.id_jugador%TYPE;
+        DECLARE LIDER_ENCONTRADO BOOLEAN := FALSE;
+
+        DECLARE ID_LIDER_ENCONTRADO_TABEQUIPO tab_equipo.lider_equipo%TYPE;
+        DECLARE LIDER_ENCONTRADO_EQUIPO BOOLEAN := FALSE;
     
         BEGIN
             SELECT UPPER(wnom_equipo) INTO wnom_equipo;
@@ -436,10 +442,21 @@ $$
                 END IF;
             END IF;
             SELECT CHAR_LENGTH(wnom_equipo)INTO TAMANIO_NOMBRE;
+            --VALIDAR QUE EL LIDER EXISTA EN LA TABLA JUGADOR
+            SELECT id_jugador INTO ID_LIDER_ENCONTRADO_TABJUGADOR FROM tab_jugador WHERE tab_jugador.id_jugador = wlider_equipo;
+            IF ID_LIDER_ENCONTRADO_TABJUGADOR IS NOT NULL THEN
+                LIDER_ENCONTRADO = TRUE;
+            END IF;
+            --VALIDAR QUE EL LIDER NO ESTE EN OTRO EQUIPO
+            SELECT id_equipo INTO ID_LIDER_ENCONTRADO_TABEQUIPO FROM tab_equipo WHERE tab_equipo.lider_equipo = wlider_equipo;
+            IF ID_LIDER_ENCONTRADO_TABEQUIPO IS NOT NULL THEN
+                LIDER_ENCONTRADO_EQUIPO = TRUE;
+            END IF;
+
             
     
             --ESTE IF TIENE QUE VALIDAR : TAMANIO_NOMBRE>2,  GAME_ENCONTRADA=TRUE , EQUIPO_ENCONTRADO = FALSE
-            IF TAMANIO_NOMBRE>2 AND GAME_ENCONTRADA=TRUE AND EQUIPO_ENCONTRADO=FALSE THEN
+            IF TAMANIO_NOMBRE>2 AND GAME_ENCONTRADA=TRUE AND EQUIPO_ENCONTRADO=FALSE AND LIDER_ENCONTRADO=TRUE AND LIDER_ENCONTRADO_EQUIPO=FALSE THEN
                 RETURN TRUE;
             ELSE
                 RETURN FALSE;
@@ -451,7 +468,7 @@ LANGUAGE plpgsql;
 
 --FUNCION PARA INSERTAR DATOS EN LA TABLA tab_equipo CON PARAMETROS DE ENTRADA
 CREATE OR REPLACE FUNCTION fun_insert_equipo(wnom_equipo tab_equipo.nom_equipo%TYPE, wdesc_equipo tab_equipo.desc_equipo%TYPE,
-                            wfoto_equipo tab_equipo.foto_equipo%TYPE,wid_game tab_equipo.id_game%TYPE) RETURNS BOOLEAN AS
+                            wfoto_equipo tab_equipo.foto_equipo%TYPE,wlider_equipo tab_equipo.lider_equipo%TYPE,wid_game tab_equipo.id_game%TYPE) RETURNS BOOLEAN AS
 $$
     DECLARE
         wnom_equipo_aux tab_equipo.nom_equipo%TYPE;
@@ -459,12 +476,12 @@ $$
         ULTIMOID INTEGER;
         TAMANIO_EQUIPO tab_equipo.tamanio_equipo%TYPE;
     BEGIN
-        IF fun_validar_equipo_insert(wnom_equipo,wid_game) THEN
+        IF fun_validar_equipo_insert(wnom_equipo,wlider_equipo,wid_game) THEN
             SELECT funcion_Retorna_ultmoid('tab_equipo','id_equipo') INTO ULTIMOID;
             SELECT tab_game.tamanio_equipos INTO TAMANIO_EQUIPO FROM tab_game WHERE tab_game.id_game = wid_game;
             SELECT UPPER(wnom_equipo) INTO wnom_equipo_aux;
             SELECT LOWER(wfoto_equipo) INTO wfoto_equipo_aux;
-            INSERT INTO tab_equipo VALUES (ULTIMOID,wnom_equipo_aux, wdesc_equipo,wfoto_equipo_aux,wid_game,TRUE,TAMANIO_EQUIPO,0);
+            INSERT INTO tab_equipo VALUES (ULTIMOID,wnom_equipo_aux, wdesc_equipo,wfoto_equipo_aux,wid_game,TRUE,TAMANIO_EQUIPO,wlider_equipo,0);
             IF FOUND THEN
                 RETURN TRUE;
             ELSE
@@ -841,3 +858,31 @@ LANGUAGE PLPGSQL;
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--FUNCION PARA TRIGGER QUE ME PERMITE LLENAR LA TABLA tab_jugador_equipo CUANDO SE CREA UN EQUIPO NUEVO EN LA TABLA tab_equipo (POST INSERT EQUIPO)
+--REQUISITOS PARA PODER CREAR ESTA FUNCION:
+--*HABER CREADO ANTES LA FUNCION funcion_Retorna_ultmoid(wnom_tabla VARCHAR,wnom_columna_id VARCHAR)
+CREATE OR REPLACE FUNCTION fun_INSERTALIDER() RETURNS "trigger" AS
+$$
+    DECLARE
+        result BOOLEAN; -- o el tipo de dato que devuelve fun_insert_jugador_equipo
+    BEGIN
+        --IMPRIMIR VARIABLES OLD
+
+
+        SELECT fun_insert_jugador_equipo(NEW.lider_equipo,NEW.id_equipo) INTO result;
+        IF result THEN
+            RAISE NOTICE 'JUGADOR LIDER INSERTADO CORRECTAMENTE';
+            RETURN NEW;
+        ELSE
+            RAISE NOTICE 'JUGADOR LIDER INSERTADO INCORRECTAMENTE';
+            RETURN NULL;
+        END IF;
+        
+        -- luego puedes hacer algo con "result" si es necesario
+        RETURN NEW;
+    END;
+$$
+LANGUAGE PLPGSQL;
+
+

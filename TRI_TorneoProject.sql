@@ -37,6 +37,15 @@ FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
 CREATE OR REPLACE TRIGGER tri_actividad_tabla_equipo BEFORE INSERT OR UPDATE ON tab_equipo
 FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
 
+DROP TRIGGER IF EXISTS tri_delete_tabla_equipo_fun_INSERTALIDER ON tab_equipo;
+
+CREATE OR REPLACE TRIGGER tri_fun_INSERTALIDER AFTER INSERT ON tab_equipo
+FOR EACH ROW EXECUTE PROCEDURE fun_INSERTALIDER();
+
+
+
+
+
 -- TRIGGER PARA tab_torneo ---------------------------------------------------------------------------
 CREATE OR REPLACE TRIGGER tri_delete_tabla_torneo AFTER DELETE ON tab_torneo
 FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
