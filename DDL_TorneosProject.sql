@@ -1,5 +1,5 @@
 --DDL CREADO POR Esteban Francisco Janiot Rivera y Jessenya Vanessa Sanabria Alvarez, 2023-12-08 4:38:00 a.m.
-
+DROP TYPE IF EXISTS equipoFULL_result;
 DROP TABLE IF EXISTS tab_equipo_torneo; --TABLA INTERMEDIA
 DROP TABLE IF EXISTS tab_jugador_equipo; --TABLA INTERMEDIA
 DROP TABLE IF EXISTS tab_match; --TABLA PRINCIPAL PARTIDO

@@ -65,7 +65,7 @@ DROP FUNCTION IF EXISTS fun_insert_jugador_datospersonales(wnombre_jugador tab_d
 DROP FUNCTION IF EXISTS fun_validar_equipo_insert(wnom_equipo tab_equipo.nom_equipo%TYPE, 
                                 wid_game tab_equipo.id_game%TYPE);
 DROP FUNCTION IF EXISTS fun_insert_equipo(wnom_equipo tab_equipo.nom_equipo%TYPE, wdesc_equipo tab_equipo.desc_equipo%TYPE,
-                                wfoto_equipo tab_equipo.foto_equipo%TYPE,wid_game tab_equipo.id_game%TYPE);
+                                wfoto_equipo tab_equipo.foto_equipo%TYPE,wlider_equipo tab_equipo.lider_equipo%TYPE,wid_game tab_equipo.id_game%TYPE);
 DROP FUNCTION IF EXISTS fun_validar_torneo_insert(wnom_torneo tab_torneo.nom_torneo%TYPE, wdesc_torneo tab_torneo.desc_torneo%TYPE,
                                 wfecha_inicio_torneo tab_torneo.fecha_inicio_torneo%TYPE,wfecha_fin_torneo tab_torneo.fecha_fin_torneo%TYPE,
                                 wfoto_torneo tab_torneo.foto_torneo%TYPE,wpremio_torneo_1 tab_torneo.premio_torneo_1%TYPE,
@@ -467,10 +467,18 @@ LANGUAGE plpgsql;
 
 
 --FUNCION PARA INSERTAR DATOS EN LA TABLA tab_equipo CON PARAMETROS DE ENTRADA
+--defienendo el retorno de la funcion PARA DESPUES CONVERTIRLO EN JSON
+
+DROP TYPE IF EXISTS equipo_result;
+CREATE TYPE equipo_result AS (
+    id_equipo INTEGER,
+    resultado BOOLEAN
+);
 CREATE OR REPLACE FUNCTION fun_insert_equipo(wnom_equipo tab_equipo.nom_equipo%TYPE, wdesc_equipo tab_equipo.desc_equipo%TYPE,
-                            wfoto_equipo tab_equipo.foto_equipo%TYPE,wlider_equipo tab_equipo.lider_equipo%TYPE,wid_game tab_equipo.id_game%TYPE) RETURNS BOOLEAN AS
+                            wfoto_equipo tab_equipo.foto_equipo%TYPE,wlider_equipo tab_equipo.lider_equipo%TYPE,wid_game tab_equipo.id_game%TYPE) RETURNS json AS
 $$
     DECLARE
+        RETORNO equipo_result;
         wnom_equipo_aux tab_equipo.nom_equipo%TYPE;
         wfoto_equipo_aux tab_equipo.foto_equipo%TYPE;
         ULTIMOID INTEGER;
@@ -483,12 +491,18 @@ $$
             SELECT LOWER(wfoto_equipo) INTO wfoto_equipo_aux;
             INSERT INTO tab_equipo VALUES (ULTIMOID,wnom_equipo_aux, wdesc_equipo,wfoto_equipo_aux,wid_game,TRUE,TAMANIO_EQUIPO,wlider_equipo,0);
             IF FOUND THEN
-                RETURN TRUE;
+                RETORNO.id_equipo := ULTIMOID;
+                RETORNO.resultado := TRUE;
+                RETURN row_to_json(RETORNO);
             ELSE
-                RETURN FALSE;
+                RETORNO.id_equipo := NULL;
+                RETORNO.resultado := FALSE;
+                RETURN row_to_json(RETORNO);
             END IF;
         ELSE
-            RETURN FALSE;
+            RETORNO.id_equipo := NULL;
+            RETORNO.resultado := FALSE;
+            RETURN row_to_json(RETORNO);
         END IF;
     END;
 $$
@@ -886,3 +900,43 @@ $$
 LANGUAGE PLPGSQL;
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--FUNCIONES GET PARA OBTENER DATOS DE VARIAS TABLAS-------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------
+--FUNCION PARA OBTENER LOS DATOS DE LA TABLA tab_equipo y los datos de los jugadores que pertenecen a ese equipo
+--REQUISITOS PARA PODER CREAR ESTA FUNCION:
+--*HABER CREADO ANTES LA FUNCION funcion_Retorna_ultmoid(wnom_tabla VARCHAR,wnom_columna_id VARCHAR)
+--defienendo el retorno de la funcion PARA DESPUES CONVERTIRLO EN JSON
+
+DROP TYPE IF EXISTS equipoFULL_result;
+CREATE TYPE equipoFULL_result AS (
+    EQUIPO tab_equipo,
+    JUGADORES tab_jugador[]
+);
+CREATE OR REPLACE FUNCTION fun_get_equipoFULL(wid_equipo tab_equipo.id_equipo%TYPE) RETURNS json AS
+$$
+-- CORREGIR QUE NO INCLUYA PARAMETROS DE USER INSERT Y DATE INSERT Y USER UPDATE Y DATE UPDATE
+    BEGIN
+        RETURN (SELECT row_to_json(equipoFULL_result) FROM 
+        (SELECT tab_equipo.*,array_agg(tab_jugador.*) AS 
+        jugadores FROM tab_equipo,tab_jugador,tab_jugador_equipo 
+        WHERE tab_equipo.id_equipo = tab_jugador_equipo.id_equipo AND 
+        tab_jugador_equipo.id_jugador = tab_jugador.id_jugador AND 
+        tab_equipo.id_equipo = wid_equipo GROUP BY
+        tab_equipo.id_equipo) equipoFULL_result);
+    END;
+$$
+LANGUAGE PLPGSQL;

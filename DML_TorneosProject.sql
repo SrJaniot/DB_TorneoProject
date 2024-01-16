@@ -41,11 +41,11 @@ SELECT fun_insert_jugador_datospersonales('Christian Torres',24,'3146808848','ch
                                           'Halomip','Esmeralda ','https://www.op.gg/summoners/lan/Halomip-LAN',1);
 SELECT fun_insert_jugador_datospersonales('Vanessa Sanabria',24,'3052295353','vanessa.sanabriia@gmail.com','https://fotodechristian.com',1,
                                           'señora janiot','challenger ','https://www.op.gg/summoners/Señora%20Janiot-LAN',1);
-SELECT fun_insert_jugador_datospersonales('prueba1',24,'123456789','prueba.1@gmail.com','https://fotodechristian.com',1,
+SELECT fun_insert_jugador_datospersonales('prueba1',24,'1234567890','prueba.1@gmail.com','https://fotodechristian.com',1,
                                           'prueba1','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
-SELECT fun_insert_jugador_datospersonales('prueba2',24,'123456789','prueba.2@gmail.com','https://fotodechristian.com',1,
+SELECT fun_insert_jugador_datospersonales('prueba2',24,'1234567890','prueba.2@gmail.com','https://fotodechristian.com',1,
                                           'prueba2','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
-SELECT fun_insert_jugador_datospersonales('prueba3',24,'123456789','prueba.3@gmail.com','https://fotodechristian.com',1,
+SELECT fun_insert_jugador_datospersonales('prueba3',24,'1234567890','prueba.3@gmail.com','https://fotodechristian.com',1,
                                           'prueba3','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
 SELECT fun_insert_jugador_datospersonales('prueba4',24,'123456789','prueba.4@gmail.com','https://fotodechristian.com',1,
                                           'prueba4','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
@@ -60,18 +60,18 @@ SELECT fun_insert_jugador_datospersonales('prueba5',24,'123456789','prueba.5@gma
 
 -- DML PARA LA TABLA EQUIPO-------------------------------------------------------------------------------------------------------------------------------------------------------------
 SELECT fun_insert_equipo('teaM SRJANIOT','equipo de league of legends','https://fotodeequipo.com',1,1); --se puede
-SELECT fun_insert_equipo('teaM SRJANIOT','equipo de valorant','https://fotodeequipo.com',2); -- se puede
-SELECT fun_insert_equipo('teaM SRHALOMIP','equipo de league of legends','https://fotodeequipo.com',1); -- se puede
+SELECT fun_insert_equipo('teaM SRaJANIOT','equipo de valorant','https://fotodeequipo.com',2,1); -- se puede
+SELECT fun_insert_equipo('teaM SRHALOMIP','equipo de league of legends','https://fotodeequipo.com',1,1); -- se puede
 
 --SELECT * FROM tab_equipo;
 
 -- DML PARA LA TABLA TORNEO-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-SELECT fun_insert_torneo('League of mini','torneo de league of legends de 8 equipos',TIMESTAMP '2023-12-24 23:59:59',TIMESTAMP '2023-12-25 23:59:59',
+SELECT fun_insert_torneo('League of mini','torneo de league of legends de 8 equipos',TIMESTAMP '2024-12-24 23:59:59',TIMESTAMP '2024-12-25 23:59:59',
                         'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',8,100000,1);
-SELECT fun_insert_torneo('League of flash','torneo de league of legends de 16 equipos',TIMESTAMP '2023-12-24 23:59:59',TIMESTAMP '2023-12-25 23:59:59',
+SELECT fun_insert_torneo('League of flash','torneo de league of legends de 16 equipos',TIMESTAMP '2024-12-24 23:59:59',TIMESTAMP '2024-12-25 23:59:59',
                         'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',16,100000,1);
-SELECT fun_insert_torneo('League of low','torneo de league of legends de 32 equipos',TIMESTAMP '2023-12-24 23:59:59',TIMESTAMP '2023-12-25 23:59:59',
+SELECT fun_insert_torneo('League of low','torneo de league of legends de 32 equipos',TIMESTAMP '2024-12-24 23:59:59',TIMESTAMP '2024-12-25 23:59:59',
                         'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',32,100000,1);						
 
 
@@ -81,16 +81,21 @@ SELECT fun_insert_torneo('League of low','torneo de league of legends de 32 equi
 
 
 -- PRUEBAS VINCULAR JUGADOR A EQUIPO-------------------------------------------------------------------------------------------------------------------------------------------------------------
-SELECT fun_insert_jugador_equipo(7,1);
+SELECT fun_insert_jugador_equipo(5,2);
 
 --SELECT * FROM tab_jugador_equipo;
 
 
 
 --PRUEBAS VINCULAR EQUIPO A TORNEO------------------------------------------------------------------------------------------------------------------------------------------------------------- 
-SELECT fun_insert_equipo_torneo(2,4);
+SELECT fun_insert_equipo_torneo(2,1);
+--OJO CORREGIR DE QUE ESTEBAN NO SE PUEDA ENFRENTAR CONTRA ESTEBAN.
 
 --SELECT * FROM tab_equipo_torneo;
+
+
+--FUNCION QUE ME RETORNA EQUIPOFULL----------------------------------------------------------
+SELECT fun_get_equipoFULL(1);
 
 
 
