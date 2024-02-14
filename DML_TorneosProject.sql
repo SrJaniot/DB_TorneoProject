@@ -98,4 +98,7 @@ SELECT fun_insert_equipo_torneo(2,1);
 SELECT fun_get_equipoFULL(1);
 
 
+--FUNCION QUE ME RETORNA JUGADOR_PERFIL----------------------------------------------------------
+SELECT fun_get_jugador_ID_PERFIL(1);
+
 

@@ -921,22 +921,86 @@ LANGUAGE PLPGSQL;
 --*HABER CREADO ANTES LA FUNCION funcion_Retorna_ultmoid(wnom_tabla VARCHAR,wnom_columna_id VARCHAR)
 --defienendo el retorno de la funcion PARA DESPUES CONVERTIRLO EN JSON
 
-DROP TYPE IF EXISTS equipoFULL_result;
+
+
+DROP TYPE IF EXISTS equipoFULL_result CASCADE;
+DROP TYPE IF EXISTS jugador_result CASCADE;
+
+CREATE TYPE jugador_result AS (
+    JUGADOR tab_jugador,
+    FOTO_PERFIL VARCHAR
+);
+
 CREATE TYPE equipoFULL_result AS (
     EQUIPO tab_equipo,
-    JUGADORES tab_jugador[]
+    JUGADORES jugador_result[]
 );
+
 CREATE OR REPLACE FUNCTION fun_get_equipoFULL(wid_equipo tab_equipo.id_equipo%TYPE) RETURNS json AS
 $$
--- CORREGIR QUE NO INCLUYA PARAMETROS DE USER INSERT Y DATE INSERT Y USER UPDATE Y DATE UPDATE
     BEGIN
-        RETURN (SELECT row_to_json(equipoFULL_result) FROM 
-        (SELECT tab_equipo.*,array_agg(tab_jugador.*) AS 
-        jugadores FROM tab_equipo,tab_jugador,tab_jugador_equipo 
-        WHERE tab_equipo.id_equipo = tab_jugador_equipo.id_equipo AND 
-        tab_jugador_equipo.id_jugador = tab_jugador.id_jugador AND 
-        tab_equipo.id_equipo = wid_equipo GROUP BY
-        tab_equipo.id_equipo) equipoFULL_result);
+        RETURN (
+            SELECT row_to_json(equipoFULL_result) 
+            FROM (
+                SELECT 
+                    tab_equipo.*,
+                    array_agg(
+                        (SELECT r FROM (SELECT tab_jugador.*, tab_datosPersonales.foto_perfil_jugador) r)
+                    ) AS jugadores 
+                FROM 
+                    tab_equipo
+                    INNER JOIN tab_jugador_equipo ON tab_equipo.id_equipo = tab_jugador_equipo.id_equipo
+                    INNER JOIN tab_jugador ON tab_jugador_equipo.id_jugador = tab_jugador.id_jugador
+                    INNER JOIN tab_datosPersonales ON tab_jugador.id_datos = tab_datosPersonales.id_datos
+                WHERE 
+                    tab_equipo.id_equipo = wid_equipo 
+                GROUP BY
+                    tab_equipo.id_equipo
+            ) equipoFULL_result
+        );
+    END;
+$$
+LANGUAGE PLPGSQL;
+
+
+--FUNCION PARA OBTENER LOS DATOS DE LA TABLA tab_jugador y la foto de perfil de la tabla tab_datosPersonales
+--REQUISITOS PARA PODER CREAR ESTA FUNCION:
+--*HABER CREADO ANTES LA FUNCION funcion_Retorna_ultmoid(wnom_tabla VARCHAR,wnom_columna_id VARCHAR)
+--defienendo el retorno de la funcion PARA DESPUES CONVERTIRLO EN JSON
+DROP TYPE IF EXISTS jugador_perfil;
+CREATE TYPE jugador_perfil AS (
+    JUGADOR tab_jugador,
+    foto_perfil VARCHAR,
+    foto_equipo VARCHAR,
+    id_equipo INTEGER,
+    nombre_equipo VARCHAR
+);
+
+CREATE OR REPLACE FUNCTION fun_get_jugador_ID_PERFIL(wid_jugador tab_jugador.id_jugador%TYPE) RETURNS json AS
+$$
+    BEGIN
+        RETURN (
+            SELECT row_to_json(jugador_perfil) 
+            FROM (
+                SELECT 
+                    tab_jugador.id_jugador, 
+                    tab_jugador.id_datos,
+                    tab_jugador.nickname_jugador,
+                    tab_jugador.liga_jugador,
+                    tab_jugador.link_cuenta_jugador,
+                    tab_jugador.id_game,
+                    tab_jugador.estado_jugador,
+                    tab_datosPersonales.foto_perfil_jugador AS foto_perfil,
+                    COALESCE(tab_equipo.foto_equipo, 'SIN EQUIPO') AS foto_equipo,
+                    tab_equipo.id_equipo,
+                    tab_equipo.nom_equipo
+                FROM tab_jugador
+                LEFT JOIN tab_datosPersonales ON tab_jugador.id_datos = tab_datosPersonales.id_datos
+                LEFT JOIN tab_jugador_equipo ON tab_jugador.id_jugador = tab_jugador_equipo.id_jugador
+                LEFT JOIN tab_equipo ON tab_jugador_equipo.id_equipo = tab_equipo.id_equipo
+                WHERE tab_jugador.id_jugador = wid_jugador
+            ) jugador_perfil
+        );
     END;
 $$
 LANGUAGE PLPGSQL;

@@ -1,5 +1,11 @@
 --DDL CREADO POR Esteban Francisco Janiot Rivera y Jessenya Vanessa Sanabria Alvarez, 2023-12-08 4:38:00 a.m.
-DROP TYPE IF EXISTS equipoFULL_result;
+DROP TYPE IF EXISTS equipoFULL_result CASCADE;
+DROP TYPE IF EXISTS jugador_result CASCADE;
+DROP TYPE IF EXISTS jugador_perfil CASCADE;
+
+
+
+
 DROP TABLE IF EXISTS tab_equipo_torneo; --TABLA INTERMEDIA
 DROP TABLE IF EXISTS tab_jugador_equipo; --TABLA INTERMEDIA
 DROP TABLE IF EXISTS tab_match; --TABLA PRINCIPAL PARTIDO
@@ -62,7 +68,7 @@ CREATE TABLE tab_datosPersonales -- DATOS PERSONALES
     correo_jugador          VARCHAR     NOT NULL,
     foto_perfil_jugador     VARCHAR,
     id_ciudad               INTEGER     NOT NULL CHECK(id_ciudad>0),
-    user_insert             VARCHAR     NOT NULL,
+    user_insert             VARCHAR,     --NOT NULL,
     user_update             VARCHAR,
     date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     date_update             TIMESTAMP WITHOUT TIME ZONE ,
@@ -102,9 +108,9 @@ CREATE TABLE tab_equipo -- EQUIPO
     tamanio_equipo          INTEGER     NOT NULL,
     lider_equipo            INTEGER     NOT NULL,
     numero_torneos_ganados  INTEGER     NOT NULL default 0,
-    user_insert             VARCHAR     NOT NULL  ,
+    user_insert             VARCHAR,    -- NOT NULL  ,
     user_update             VARCHAR,
-    date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL ,
+    date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL ,
     date_update             TIMESTAMP WITHOUT TIME ZONE ,
 
     PRIMARY KEY(id_equipo),
