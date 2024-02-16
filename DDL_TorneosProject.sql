@@ -35,9 +35,9 @@ CREATE TABLE tab_ciudad -- CIUDAD
     id_ciudad       INTEGER     NOT NULL CHECK(id_ciudad>0),
     nom_ciudad      VARCHAR     NOT NULL,
     desc_ciudad     VARCHAR     NOT NULL,
-    user_insert     VARCHAR     NOT NULL,
+    user_insert     VARCHAR,--     NOT NULL,
 	user_update     VARCHAR,
-	date_insert     TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	date_insert     TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
 	date_update     TIMESTAMP WITHOUT TIME ZONE ,
 
     PRIMARY KEY(id_ciudad)
@@ -51,9 +51,9 @@ CREATE TABLE tab_game -- GAME
     tamanio_equipos INTEGER     NOT NULL,
     estado_game     BOOLEAN     NOT NULL default TRUE, -- TRUE = ACTIVO, FALSE = INACTIVO
     foto_logo_game  VARCHAR     NOT NULL,
-    user_insert     VARCHAR     NOT NULL,
+    user_insert     VARCHAR,--     NOT NULL,
     user_update     VARCHAR,
-    date_insert     TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    date_insert     TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
     date_update     TIMESTAMP WITHOUT TIME ZONE ,
 
     PRIMARY KEY(id_game)
@@ -70,7 +70,7 @@ CREATE TABLE tab_datosPersonales -- DATOS PERSONALES
     id_ciudad               INTEGER     NOT NULL CHECK(id_ciudad>0),
     user_insert             VARCHAR,     --NOT NULL,
     user_update             VARCHAR,
-    date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
     date_update             TIMESTAMP WITHOUT TIME ZONE ,
 
     PRIMARY KEY(id_datos),
@@ -87,9 +87,9 @@ CREATE TABLE tab_jugador -- JUGADOR
     estado_jugador          BOOLEAN     NOT NULL default TRUE, -- TRUE = ACTIVO, FALSE = INACTIVO 
     link_cuenta_jugador     VARCHAR     NOT NULL,
     id_game                 INTEGER     NOT NULL CHECK(id_game>0),
-    user_insert             VARCHAR     NOT NULL,
+    user_insert             VARCHAR,--     NOT NULL,
     user_update             VARCHAR,
-    date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
     date_update             TIMESTAMP WITHOUT TIME ZONE ,
 
     PRIMARY KEY(id_jugador),
@@ -136,9 +136,9 @@ CREATE TABLE tab_torneo -- TORNEO
     valor_dinero_torneo     INTEGER     NOT NULL,
     id_game                 INTEGER     NOT NULL CHECK(id_game>0),
     estado_torneo           INTEGER     NOT NULL default 1, -- 1 = ACTIVO, 2 = EN JUEGO , 3 = FINALIZADO
-    user_insert             VARCHAR     NOT NULL,
+    user_insert             VARCHAR,--     NOT NULL,
     user_update             VARCHAR,
-    date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
     date_update             TIMESTAMP WITHOUT TIME ZONE ,
 
     PRIMARY KEY(id_torneo),
@@ -159,9 +159,9 @@ CREATE TABLE tab_match --Match (partidas del arbol)
     resultado_match         VARCHAR     ,
     ganador_match           INTEGER     ,
     perdedor_match          INTEGER     ,
-    user_insert             VARCHAR     NOT NULL,
+    user_insert             VARCHAR,--     NOT NULL,
     user_update             VARCHAR,
-    date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
     date_update             TIMESTAMP WITHOUT TIME ZONE ,
 
     PRIMARY KEY(id_match),
@@ -178,9 +178,9 @@ CREATE TABLE tab_jugador_equipo -- TABLA INTERMEDIA JUGADOR EQUIPO
     id_jugador_equipo       INTEGER     NOT NULL CHECK(id_jugador_equipo>0),
     id_jugador              INTEGER     NOT NULL CHECK(id_jugador>0),
     id_equipo               INTEGER     NOT NULL CHECK(id_equipo>0),
-    user_insert             VARCHAR     NOT NULL,
+    user_insert             VARCHAR,--     NOT NULL,
     user_update             VARCHAR,
-    date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
     date_update             TIMESTAMP WITHOUT TIME ZONE ,
 
     PRIMARY KEY(id_jugador_equipo),
@@ -193,9 +193,9 @@ CREATE TABLE tab_equipo_torneo -- TABLA INTERMEDIA EQUIPO TORNEO
     id_equipo_torneo        INTEGER     NOT NULL CHECK(id_equipo_torneo>0),
     id_equipo               INTEGER     NOT NULL CHECK(id_equipo>0),
     id_torneo               INTEGER     NOT NULL CHECK(id_torneo>0),
-    user_insert             VARCHAR     NOT NULL,
+    user_insert             VARCHAR,--     NOT NULL,
     user_update             VARCHAR,
-    date_insert             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
     date_update             TIMESTAMP WITHOUT TIME ZONE ,
 
     PRIMARY KEY(id_equipo_torneo),
