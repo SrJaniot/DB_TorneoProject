@@ -57,11 +57,14 @@ SELECT fun_insert_jugador_datospersonales('prueba5',24,'123456789','prueba.5@gma
 --SELECT * FROM tab_jugador;
 --SELECT * FROM tab_datospersonales;
 
+-- BUSCAR ID A PARTIR DEL CORREO 
+SELECT fun_retornar_id_jugador('mapovin590@tospage.com');
+
 
 -- DML PARA LA TABLA EQUIPO-------------------------------------------------------------------------------------------------------------------------------------------------------------
-SELECT fun_insert_equipo('teaM SRJANIOT','equipo de league of legends','https://fotodeequipo.com',1,1); --se puede
-SELECT fun_insert_equipo('teaM SRaJANIOT','equipo de valorant','https://fotodeequipo.com',2,1); -- se puede
-SELECT fun_insert_equipo('teaM SRHALOMIP','equipo de league of legends','https://fotodeequipo.com',1,1); -- se puede
+SELECT fun_insert_equipo('teaM SRJANIOT','equipo de league of legends','https://fotodeequipo.com',1,1,'SIN HASH'); --se puede
+SELECT fun_insert_equipo('teaM SRaJANIOT','equipo de valorant','https://fotodeequipo.com',2,1,'SIN HASH'); -- se puede
+SELECT fun_insert_equipo('teaM SRHALOMIP','equipo de league of legends','https://fotodeequipo.com',1,1,'SIN HASH'); -- se puede
 
 --SELECT * FROM tab_equipo;
 
@@ -77,6 +80,8 @@ SELECT fun_insert_torneo('League of low','torneo de league of legends de 32 equi
 
 --SELECT * FROM tab_torneo;
 --SELECT * FROM tab_match;
+
+
 
 
 

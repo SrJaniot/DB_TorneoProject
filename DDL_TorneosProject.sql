@@ -108,6 +108,7 @@ CREATE TABLE tab_equipo -- EQUIPO
     tamanio_equipo          INTEGER     NOT NULL,
     lider_equipo            INTEGER     NOT NULL,
     numero_torneos_ganados  INTEGER     NOT NULL default 0,
+    hash_equipo             VARCHAR     NOT NULL,
     user_insert             VARCHAR,    -- NOT NULL  ,
     user_update             VARCHAR,
     date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL ,

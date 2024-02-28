@@ -413,6 +413,24 @@ $$
 LANGUAGE plpgsql;
 
 
+
+
+--FUNCION PARA RETORNAR EL ID DE UN JUGADOR A PARTIR DEL CORREO
+CREATE OR REPLACE FUNCTION fun_retornar_id_jugador(wcorreo_jugador tab_datosPersonales.correo_jugador%TYPE) RETURNS INTEGER AS
+$$
+    DECLARE ID_JUGADOR INTEGER;
+    BEGIN
+        SELECT tab_datosPersonales.id_datos INTO ID_JUGADOR FROM tab_datosPersonales WHERE tab_datosPersonales.correo_jugador = wcorreo_jugador;
+        IF ID_JUGADOR IS NOT NULL THEN
+            RETURN ID_JUGADOR;
+        ELSE
+            RETURN NULL;
+        END IF;
+    END;
+$$
+LANGUAGE plpgsql;
+
+
 --FUNCIONES PARA LA TABLA tab_equipo -------------------------------------------------------------------------------------------------------------------------------------------------------------
 --VALIDAR ATRIBUTOS DE LA TABLA tab_equipo
 CREATE OR REPLACE FUNCTION fun_validar_equipo_insert(wnom_equipo tab_equipo.nom_equipo%TYPE, 
@@ -475,7 +493,8 @@ CREATE TYPE equipo_result AS (
     resultado BOOLEAN
 );
 CREATE OR REPLACE FUNCTION fun_insert_equipo(wnom_equipo tab_equipo.nom_equipo%TYPE, wdesc_equipo tab_equipo.desc_equipo%TYPE,
-                            wfoto_equipo tab_equipo.foto_equipo%TYPE,wlider_equipo tab_equipo.lider_equipo%TYPE,wid_game tab_equipo.id_game%TYPE) RETURNS json AS
+                            wfoto_equipo tab_equipo.foto_equipo%TYPE,wlider_equipo tab_equipo.lider_equipo%TYPE,wid_game tab_equipo.id_game%TYPE,
+                            whash_equipo tab_equipo.hash_equipo%TYPE) RETURNS json AS
 $$
     DECLARE
         RETORNO equipo_result;
@@ -489,7 +508,7 @@ $$
             SELECT tab_game.tamanio_equipos INTO TAMANIO_EQUIPO FROM tab_game WHERE tab_game.id_game = wid_game;
             SELECT UPPER(wnom_equipo) INTO wnom_equipo_aux;
             SELECT LOWER(wfoto_equipo) INTO wfoto_equipo_aux;
-            INSERT INTO tab_equipo VALUES (ULTIMOID,wnom_equipo_aux, wdesc_equipo,wfoto_equipo_aux,wid_game,TRUE,TAMANIO_EQUIPO,wlider_equipo,0);
+            INSERT INTO tab_equipo VALUES (ULTIMOID,wnom_equipo_aux, wdesc_equipo,wfoto_equipo_aux,wid_game,TRUE,TAMANIO_EQUIPO,wlider_equipo,0,whash_equipo);
             IF FOUND THEN
                 RETORNO.id_equipo := ULTIMOID;
                 RETORNO.resultado := TRUE;
@@ -766,6 +785,37 @@ $$
     END;
 $$
 LANGUAGE plpgsql;
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- FUNCION PARA ACTUALIZAR PARAMETROS
+-- FUNCION PARA ACTUALIZAR LA FOTO DE PERFIL DE UN JUGADOR
+CREATE OR REPLACE FUNCTION fun_actualizar_foto_jugador(wid_jugador tab_datosPersonales.id_datos%TYPE, wfoto_perfil_jugador tab_datosPersonales.foto_perfil_jugador%TYPE) RETURNS BOOLEAN AS
+$$
+    DECLARE
+        ID_DATOS_ENCONTRADA tab_datosPersonales.id_datos%TYPE;
+        DATOS_ENCONTRADA BOOLEAN := FALSE;
+    BEGIN
+        SELECT a.id_datos INTO ID_DATOS_ENCONTRADA FROM tab_datosPersonales a WHERE a.id_datos = wid_jugador;
+        IF ID_DATOS_ENCONTRADA IS NOT NULL THEN
+            DATOS_ENCONTRADA = TRUE;
+        END IF;
+        IF DATOS_ENCONTRADA THEN
+            UPDATE tab_datosPersonales SET foto_perfil_jugador = wfoto_perfil_jugador WHERE tab_datosPersonales.id_datos = wid_jugador;
+            IF FOUND THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
+        ELSE
+            RETURN FALSE;
+        END IF;
+    END;
+$$
+LANGUAGE PLPGSQL;
+
 
 
 
