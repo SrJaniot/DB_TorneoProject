@@ -1054,3 +1054,46 @@ $$
     END;
 $$
 LANGUAGE PLPGSQL;
+
+
+-- FUNCION QUE VALIDA EL HASH DEL EQUIPO Y EL ID DEL EQUIPO EXISTAN EN LA TABLA tab_equipo
+CREATE OR REPLACE FUNCTION fun_validar_hash_equipo(wid_equipo tab_equipo.id_equipo%TYPE,wid_hash_equipo tab_equipo.hash_equipo%TYPE) RETURNS BOOLEAN AS
+$$
+    DECLARE
+        ID_EQUIPO_ENCONTRADO tab_equipo.id_equipo%TYPE;
+        HASH_EQUIPO_ENCONTRADO BOOLEAN := FALSE;
+    BEGIN
+        SELECT tab_equipo.id_equipo INTO ID_EQUIPO_ENCONTRADO FROM tab_equipo WHERE tab_equipo.id_equipo = wid_equipo AND tab_equipo.hash_equipo = wid_hash_equipo LIMIT 1;
+        IF FOUND  THEN
+            RETURN TRUE;
+        ELSE
+            RETURN FALSE;
+        END IF;
+    END;
+$$
+LANGUAGE PLPGSQL;
+
+
+
+
+-- FUNCION QUE ME PERMITE INSERTAR UN JUGADOR EN LA TABLA tab_jugador_equipo SIEMPRE Y CUANDO EL HASH DEL EQUIPO SEA IGUAL AL HASH QUE SE ENVIA Y EL ID DEL EQUIPO SEA IGUAL AL ID QUE SE ENVIA
+CREATE OR REPLACE FUNCTION fun_insert_jugador_equipo_HASH(wid_equipo tab_equipo.id_equipo%TYPE ,
+                                                wid_hash_equipo tab_equipo.hash_equipo%TYPE,wid_jugador tab_jugador_equipo.id_jugador%TYPE) RETURNS BOOLEAN AS
+$$
+    DECLARE
+        RETORNO BOOLEAN;
+        HASH_ID_EQUIPO_VALIDO BOOLEAN;
+    BEGIN
+        --VALIDAR QUE EXISTA EL EQUIPO CON EL ID Y EL HASH
+        SELECT fun_validar_hash_equipo(wid_equipo,wid_hash_equipo) INTO HASH_ID_EQUIPO_VALIDO;     
+        
+        SELECT fun_insert_jugador_equipo(wid_jugador,wid_equipo) INTO RETORNO;
+        IF RETORNO THEN
+            RETURN TRUE;
+        ELSE
+            RETURN FALSE;
+        END IF;
+    END;
+
+$$
+LANGUAGE PLPGSQL;

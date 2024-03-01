@@ -47,10 +47,13 @@ SELECT fun_insert_jugador_datospersonales('prueba2',24,'1234567890','prueba.2@gm
                                           'prueba2','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
 SELECT fun_insert_jugador_datospersonales('prueba3',24,'1234567890','prueba.3@gmail.com','https://fotodechristian.com',1,
                                           'prueba3','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
-SELECT fun_insert_jugador_datospersonales('prueba4',24,'123456789','prueba.4@gmail.com','https://fotodechristian.com',1,
+SELECT fun_insert_jugador_datospersonales('prueba4',24,'1234567890','prueba.4@gmail.com','https://fotodechristian.com',1,
                                           'prueba4','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
-SELECT fun_insert_jugador_datospersonales('prueba5',24,'123456789','prueba.5@gmail.com','https://fotodechristian.com',1,
+SELECT fun_insert_jugador_datospersonales('prueba5',24,'1234567890','prueba.5@gmail.com','https://fotodechristian.com',1,
                                           'prueba5','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
+SELECT fun_insert_jugador_datospersonales('prueba6',24,'1234567890','prueba.6@gmail.com','https://fotodechristian.com',1,
+                                          'prueba6','bronce ','https://www.op.gg/summoners/lan/prueba1-LAN',1);
+
 
 
 
@@ -86,8 +89,12 @@ SELECT fun_insert_torneo('League of low','torneo de league of legends de 32 equi
 
 
 -- PRUEBAS VINCULAR JUGADOR A EQUIPO-------------------------------------------------------------------------------------------------------------------------------------------------------------
-SELECT fun_insert_jugador_equipo(5,2);
 
+SELECT fun_insert_jugador_equipo(2,1);
+SELECT fun_validar_hash_equipo(1,'SIN HASH');
+SELECT fun_insert_jugador_equipo_HASH(1,'SIN HASH',5);
+
+--SELECT * FROM tab_equipo;
 --SELECT * FROM tab_jugador_equipo;
 
 
@@ -105,5 +112,8 @@ SELECT fun_get_equipoFULL(1);
 
 --FUNCION QUE ME RETORNA JUGADOR_PERFIL----------------------------------------------------------
 SELECT fun_get_jugador_ID_PERFIL(1);
+
+
+
 
 
