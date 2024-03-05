@@ -658,6 +658,8 @@ $$
         ID_GAME_JUGADOR tab_jugador.id_game%TYPE;
         ID_GAME_EQUIPO tab_equipo.id_game%TYPE;
         GAME_IGUALES BOOLEAN := FALSE;
+        JUGADOR_EQUIPO_ENCONTRADO_OTRO BOOLEAN := FALSE;
+        ID_JUGADOR_EQUIPO_ENCONTRADO_OTRO tab_jugador_equipo.id_jugador%TYPE;
     BEGIN
         SELECT funcion_Retorna_ultmoid('tab_jugador_equipo','id_jugador_equipo') INTO ULTIMOID;
         --valida si el jugador existe
@@ -675,6 +677,12 @@ $$
         IF ID_JUGADOR_EQUIPO_ENCONTRADO IS NOT NULL THEN
             JUGADOR_EQUIPO_ENCONTRADO = TRUE;
         END IF;
+        --valida si el jugador ya esta en otro equipo
+        SELECT id_jugador INTO ID_JUGADOR_EQUIPO_ENCONTRADO_OTRO FROM tab_jugador_equipo WHERE tab_jugador_equipo.id_jugador = wid_jugador;
+        IF ID_JUGADOR_EQUIPO_ENCONTRADO_OTRO IS NOT NULL THEN
+            JUGADOR_EQUIPO_ENCONTRADO_OTRO = TRUE;
+        END IF;
+        
 
         SELECT tab_equipo.tamanio_equipo INTO TAMANIO_EQUIPO FROM tab_equipo WHERE tab_equipo.id_equipo = wid_equipo;
         SELECT COUNT(*) INTO CANTIDAD_JUGADORES_EQUIPO FROM tab_jugador_equipo WHERE tab_jugador_equipo.id_equipo = wid_equipo;
@@ -689,7 +697,7 @@ $$
 
 
 
-        IF JUGADOR_ENCONTRADO AND EQUIPO_ENCONTRADO AND NOT JUGADOR_EQUIPO_ENCONTRADO AND NOT CANTIDAD_JUGADORES_EQUIPO_MAYOR AND GAME_IGUALES THEN
+        IF JUGADOR_ENCONTRADO AND EQUIPO_ENCONTRADO AND NOT JUGADOR_EQUIPO_ENCONTRADO AND NOT JUGADOR_EQUIPO_ENCONTRADO_OTRO AND NOT CANTIDAD_JUGADORES_EQUIPO_MAYOR AND GAME_IGUALES THEN
             INSERT INTO tab_jugador_equipo VALUES (ULTIMOID,wid_jugador,wid_equipo,TRUE);
             IF FOUND THEN
                 RETURN TRUE;
@@ -1085,14 +1093,19 @@ $$
         HASH_ID_EQUIPO_VALIDO BOOLEAN;
     BEGIN
         --VALIDAR QUE EXISTA EL EQUIPO CON EL ID Y EL HASH
-        SELECT fun_validar_hash_equipo(wid_equipo,wid_hash_equipo) INTO HASH_ID_EQUIPO_VALIDO;     
-        
-        SELECT fun_insert_jugador_equipo(wid_jugador,wid_equipo) INTO RETORNO;
-        IF RETORNO THEN
-            RETURN TRUE;
+        SELECT fun_validar_hash_equipo(wid_equipo,wid_hash_equipo) INTO HASH_ID_EQUIPO_VALIDO;
+        IF HASH_ID_EQUIPO_VALIDO THEN
+            SELECT fun_insert_jugador_equipo(wid_jugador,wid_equipo) INTO RETORNO;
+            IF RETORNO THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
         ELSE
             RETURN FALSE;
-        END IF;
+        END IF;     
+        
+       
     END;
 
 $$

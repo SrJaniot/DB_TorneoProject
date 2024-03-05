@@ -90,11 +90,12 @@ SELECT fun_insert_torneo('League of low','torneo de league of legends de 32 equi
 
 -- PRUEBAS VINCULAR JUGADOR A EQUIPO-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-SELECT fun_insert_jugador_equipo(2,1);
-SELECT fun_validar_hash_equipo(1,'SIN HASH');
-SELECT fun_insert_jugador_equipo_HASH(1,'SIN HASH',5);
+SELECT fun_insert_jugador_equipo(1,2);
+SELECT fun_validar_hash_equipo(2,'PNNfFt0vOfRlfwuGRauseBboLzDfSdIyBf9cSLv5VzT6lWMQI21rZMdtoVHvmOg34yP3axqAeJqKaWftS23pkgXoDJFkKrOcN4CP');
+SELECT fun_insert_jugador_equipo_HASH(2,'PNNfFt0vOfRlfwuGRauseBboLzDfSdIyBf9cSLv5VzT6lWMQI21rZMdtoVHvmOg34yP3axqAeJqKaWftS23pkgXoDJFkKrOcN4CP',12);
 
 --SELECT * FROM tab_equipo;
+--SELECT * FROM tab_jugador;
 --SELECT * FROM tab_jugador_equipo;
 
 
