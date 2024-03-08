@@ -623,7 +623,7 @@ $$
             SELECT LOWER(wvideo_explica_torneo) INTO wvideo_explica_torneo_aux;
             cantidad_match := wcantidad_equipos;
             
-            INSERT INTO tab_torneo VALUES (ULTIMOID,wnom_torneo_aux, wdesc_torneo,wfecha_inicio_torneo,wfecha_fin_torneo,wfoto_torneo_aux,
+            INSERT INTO tab_torneo VALUES (ULTIMOID,wnom_torneo_aux, wdesc_torneo,wfecha_inicio_torneo,wfecha_fin_torneo,wfoto_torneo,
                                            wpremio_torneo_1,wpremio_torneo_2,wpremio_torneo_3,wvideo_explica_torneo_aux,wcantidad_equipos,cantidad_match,
                                            wvalor_dinero_torneo,wid_game,1,winformacion_general,winformacion_reglas,wfoto_premio_torneo_1,
                                            wfoto_premio_torneo_2,wfoto_premio_torneo_3,wfoto_carta_fondo,wfoto_carta_titulo,wfoto_carta_personaje);
