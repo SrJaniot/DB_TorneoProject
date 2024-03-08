@@ -7,4 +7,5 @@ PARA PODER USAR ESTA BASE DE DATOS EL ORDEN DE EJECUCION DE ARCHIVOS ES:
 EL ARCHIVO QUE CONTIENE LAS FUNCIONES PARA EJECUTAR ES: DML_TorneosProject.sql
 
 --Esteban Francisco Janiot Rivera  
+--Jessenya Vanessa Sanabria Alvarez
 --Bucaramanga-Colombia 2024
