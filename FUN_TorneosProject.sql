@@ -599,7 +599,12 @@ CREATE OR REPLACE FUNCTION fun_insert_torneo(wnom_torneo tab_torneo.nom_torneo%T
                             wpremio_torneo_2 tab_torneo.premio_torneo_2%TYPE,wpremio_torneo_3 tab_torneo.premio_torneo_3%TYPE,
                             wvideo_explica_torneo tab_torneo.video_explica_torneo%TYPE,wcantidad_equipos tab_torneo.cantidad_equipos%TYPE,
                             wvalor_dinero_torneo tab_torneo.valor_dinero_torneo%TYPE,
-                            wid_game tab_torneo.id_game%TYPE  ) RETURNS json AS
+                            wid_game tab_torneo.id_game%TYPE,winformacion_general tab_torneo.informacion_general%TYPE,
+                            winformacion_reglas tab_torneo.informacion_reglas%TYPE,wfoto_premio_torneo_1 tab_torneo.foto_premio_torneo_1%TYPE,
+                            wfoto_premio_torneo_2 tab_torneo.foto_premio_torneo_2%TYPE, wfoto_premio_torneo_3 tab_torneo.foto_premio_torneo_3%TYPE,
+                            wfoto_carta_fondo tab_torneo.foto_carta_fondo%TYPE, wfoto_carta_titulo tab_torneo.foto_carta_titulo%TYPE,
+                            wfoto_carta_personaje tab_torneo.foto_carta_personaje%TYPE) RETURNS json AS
+
 $$
     DECLARE
         RETORNO torneo_result;
@@ -620,7 +625,8 @@ $$
             
             INSERT INTO tab_torneo VALUES (ULTIMOID,wnom_torneo_aux, wdesc_torneo,wfecha_inicio_torneo,wfecha_fin_torneo,wfoto_torneo_aux,
                                            wpremio_torneo_1,wpremio_torneo_2,wpremio_torneo_3,wvideo_explica_torneo_aux,wcantidad_equipos,cantidad_match,
-                                           wvalor_dinero_torneo,wid_game,1);
+                                           wvalor_dinero_torneo,wid_game,1,winformacion_general,winformacion_reglas,wfoto_premio_torneo_1,
+                                           wfoto_premio_torneo_2,wfoto_premio_torneo_3,wfoto_carta_fondo,wfoto_carta_titulo,wfoto_carta_personaje);
             IF FOUND THEN
                 RETORNO.id_torneo := ULTIMOID;
                 RETORNO.resultado := TRUE;

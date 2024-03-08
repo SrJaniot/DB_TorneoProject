@@ -137,6 +137,16 @@ CREATE TABLE tab_torneo -- TORNEO
     valor_dinero_torneo     INTEGER     NOT NULL,
     id_game                 INTEGER     NOT NULL CHECK(id_game>0),
     estado_torneo           INTEGER     NOT NULL default 1, -- 1 = ACTIVO, 2 = EN JUEGO , 3 = FINALIZADO
+    --variables extras
+    informacion_general     VARCHAR     NOT NULL,
+    informacion_reglas      VARCHAR     NOT NULL,
+    foto_premio_torneo_1    VARCHAR     NOT NULL,
+    foto_premio_torneo_2    VARCHAR     NOT NULL,
+    foto_premio_torneo_3    VARCHAR     NOT NULL,
+    foto_carta_fondo        VARCHAR     NOT NULL,
+    foto_carta_titulo       VARCHAR     NOT NULL,
+    foto_carta_personaje    VARCHAR     NOT NULL,
+    --variables de auditoria
     user_insert             VARCHAR,--     NOT NULL,
     user_update             VARCHAR,
     date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
