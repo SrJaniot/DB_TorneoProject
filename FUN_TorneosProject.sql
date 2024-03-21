@@ -721,7 +721,7 @@ LANGUAGE plpgsql;
 
 --FUNCION QUE PERMINTE VINCULAR UN EQUIPO A UN TORNEO EN tab_equipo_torneo
 CREATE OR REPLACE FUNCTION fun_insert_equipo_torneo(wid_equipo tab_equipo_torneo.id_equipo%TYPE,
-                                 wid_torneo tab_equipo_torneo.id_torneo%TYPE) RETURNS BOOLEAN AS
+                                 wid_torneo tab_equipo_torneo.id_torneo%TYPE,wid_liderEquipo tab_equipo.lider_equipo%TYPE) RETURNS BOOLEAN AS
 $$
     DECLARE
         ULTIMOID INTEGER;
@@ -739,6 +739,9 @@ $$
         ID_GAME_EQUIPO tab_equipo.id_game%TYPE;
         ID_GAME_TORNEO tab_torneo.id_game%TYPE;
         GAME_IGUALES BOOLEAN := FALSE;
+
+        ID_LIDER_EQUIPO_TAB_EQUIPO tab_equipo.lider_equipo%TYPE;
+        USUARIO_LIDER_EQUIPO BOOLEAN := FALSE;
     BEGIN
         SELECT funcion_Retorna_ultmoid('tab_equipo_torneo','id_equipo_torneo') INTO ULTIMOID;
         --valida si el equipo existe
@@ -775,6 +778,17 @@ $$
             GAME_IGUALES = TRUE;
         END IF;
 
+
+        --VALIDAR QUE UNICAMENTE EL LIDER DEL EQUIPO PUEDA INSCRIBIR EL EQUIPO AL TORNEO
+        SELECT tab_equipo.lider_equipo INTO ID_LIDER_EQUIPO_TAB_EQUIPO FROM tab_equipo WHERE tab_equipo.id_equipo = wid_equipo;
+        IF ID_LIDER_EQUIPO_TAB_EQUIPO = wid_liderEquipo THEN
+            USUARIO_LIDER_EQUIPO = TRUE;
+            --RAISE NOTICE 'LIDER EQUIPO ENCONTRADO';
+        END IF;
+
+
+
+
         RAISE NOTICE 'EQUIPO ENCONTRADO: %',EQUIPO_ENCONTRADO;
         RAISE NOTICE 'TORNEO ENCONTRADO: %',TORNEO_ENCONTRADO;
         RAISE NOTICE 'EQUIPO TORNEO ENCONTRADO: %',EQUIPO_TORNEO_ENCONTRADO;
@@ -782,11 +796,12 @@ $$
         RAISE NOTICE 'GAME_IGUALES: %',GAME_IGUALES;
         RAISE NOTICE 'TAMANIO_JUGADORES_EQUIPO: %',TAMANIO_JUGADORES_EQUIPO;
         RAISE NOTICE 'TAMANIO_JUGADORES_GAME: %',TAMANIO_JUGADORES_GAME;
+        RAISE NOTICE 'USUARIO_LIDER_EQUIPO: %',USUARIO_LIDER_EQUIPO;
 
 
 
         IF EQUIPO_ENCONTRADO AND TORNEO_ENCONTRADO AND NOT EQUIPO_TORNEO_ENCONTRADO AND NOT CANTIDAD_EQUIPOS_TORNEO_MAYOR AND 
-        GAME_IGUALES AND TAMANIO_JUGADORES_EQUIPO=TAMANIO_JUGADORES_GAME THEN
+        GAME_IGUALES AND TAMANIO_JUGADORES_EQUIPO=TAMANIO_JUGADORES_GAME AND USUARIO_LIDER_EQUIPO THEN
             INSERT INTO tab_equipo_torneo VALUES (ULTIMOID,wid_equipo,wid_torneo,TRUE);
             IF FOUND THEN
                 RETURN TRUE;

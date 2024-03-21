@@ -102,7 +102,7 @@ SELECT fun_insert_jugador_equipo_HASH(2,'PNNfFt0vOfRlfwuGRauseBboLzDfSdIyBf9cSLv
 
 
 --PRUEBAS VINCULAR EQUIPO A TORNEO------------------------------------------------------------------------------------------------------------------------------------------------------------- 
-SELECT fun_insert_equipo_torneo(2,1);
+SELECT fun_insert_equipo_torneo(2,1,1);
 --OJO CORREGIR DE QUE ESTEBAN NO SE PUEDA ENFRENTAR CONTRA ESTEBAN.
 
 --SELECT * FROM tab_equipo_torneo;
