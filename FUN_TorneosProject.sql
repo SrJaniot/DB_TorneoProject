@@ -10,6 +10,10 @@
 --DROPEOS DE TRIGGERS SI EXISTEN-------------------------------------------------------------------------------------------------------------------------------------------------------------   
 DROP TRIGGER IF EXISTS tri_delete_tabla_ciudad ON tab_ciudad;
 DROP TRIGGER IF EXISTS tri_actividad_tabla_ciudad ON tab_ciudad;
+
+DROP TRIGGER IF EXISTS tri_delete_tabla_tipodocumento ON tab_tipodocumento;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_tipodocumento ON tab_tipodocumento;
+
 DROP TRIGGER IF EXISTS tri_delete_tabla_game ON tab_game;
 DROP TRIGGER IF EXISTS tri_actividad_tabla_game ON tab_game;
 DROP TRIGGER IF EXISTS tri_delete_tabla_datosPersonales ON tab_datosPersonales;
@@ -174,6 +178,49 @@ $$
 $$
 LANGUAGE plpgsql;
 
+--FUNCIONES PARA LA TABLA TIPO DOCUMENTO tab_tipodocumento -------------------------------------------------------------------------------------------------------------------------------------------------------------
+--VALIDAR ATRIBUTOS DE LA TABLA TIPO DOCUMENTO
+CREATE OR REPLACE FUNCTION fun_validar_tipoDocumento_insert(wnom_tipodocumento tab_tipodocumento.nom_documento%TYPE, wdesc_documento tab_tipodocumento.desc_documento%TYPE) RETURNS BOOLEAN AS
+$$
+    DECLARE nombre_documento_encontrado tab_tipodocumento.nom_documento%TYPE;
+    BEGIN
+        SELECT UPPER(wnom_tipodocumento) INTO wnom_tipodocumento;
+        SELECT nom_documento INTO nombre_documento_encontrado FROM tab_tipodocumento WHERE tab_tipodocumento.nom_documento = wnom_tipodocumento;
+        IF nombre_documento_encontrado IS NULL THEN
+            RETURN TRUE;
+        ELSE
+            RETURN FALSE;
+        END IF;
+    END;
+$$
+LANGUAGE plpgsql;
+
+--FUNCION PARA INSERTAR DATOS EN LA TABLA TIPO DOCUMENTO CON PARAMETROS DE ENTRADA
+CREATE OR REPLACE FUNCTION fun_insert_tipoDocumento(wnom_tipodocumento tab_tipodocumento.nom_documento%TYPE, wdesc_documento tab_tipodocumento.desc_documento%TYPE) RETURNS BOOLEAN AS
+$$
+    DECLARE
+        wnom_tipodocumento_aux tab_tipodocumento.nom_documento%TYPE;
+        wdesc_documento_aux tab_tipodocumento.desc_documento%TYPE;
+        ULTIMOID INTEGER;
+    BEGIN
+        SELECT UPPER(wnom_tipodocumento) INTO wnom_tipodocumento_aux;
+        SELECT UPPER(wdesc_documento) INTO wdesc_documento_aux;
+        SELECT funcion_Retorna_ultmoid('tab_tipodocumento','id_documento') INTO ULTIMOID;
+        IF fun_validar_tipoDocumento_insert(wnom_tipodocumento_aux, wdesc_documento_aux) THEN
+            INSERT INTO tab_tipodocumento VALUES (ULTIMOID,wnom_tipodocumento_aux, wdesc_documento_aux);
+            IF FOUND THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
+        ELSE
+            RETURN FALSE;
+        END IF;
+    END;
+$$
+LANGUAGE plpgsql;
+
+
 
 
 --FUNCIONES PARA LA TABLA GAME tab_game -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -229,15 +276,22 @@ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION fun_validar_datosPersonales_insert(wnombre_jugador tab_datosPersonales.nombre_jugador%TYPE, wedad_jugador tab_datosPersonales.edad_jugador%TYPE,
                              wtel_jugador tab_datosPersonales.tel_jugador%TYPE,wcorreo_jugador tab_datosPersonales.correo_jugador%TYPE,
-                             wfoto_perfil_jugador tab_datosPersonales.foto_perfil_jugador%TYPE,wid_ciudad tab_datosPersonales.id_ciudad%type) RETURNS BOOLEAN AS
+                             wfoto_perfil_jugador tab_datosPersonales.foto_perfil_jugador%TYPE,wid_ciudad tab_datosPersonales.id_ciudad%type,
+                             wid_tipodocumento tab_datosPersonales.id_tipo_documento%TYPE, wnum_documento tab_datosPersonales.num_documento%TYPE) RETURNS BOOLEAN AS
 $$
      DECLARE TAMANIO_NOMBRE INTEGER;
      DECLARE TAMANIO_NUM_TELEFONO INTEGER;
      DECLARE ES_CORREO BOOLEAN;
      DECLARE ID_CIUDAD_ENCONTRADA tab_ciudad.id_ciudad%TYPE;
      DECLARE CIUDAD_ENCONTRADA BOOLEAN := FALSE;
-    DECLARE CORREO_ENCONTRADO tab_datosPersonales.correo_jugador%TYPE;
+     DECLARE CORREO_ENCONTRADO tab_datosPersonales.correo_jugador%TYPE;
      DECLARE CORREO_DUPLICADO BOOLEAN := FALSE;
+
+    DECLARE DOCUMENTO_ENCONTRADO tab_tipodocumento.id_documento%TYPE;
+    DECLARE DOCUMENTO_DUPLICADO BOOLEAN := FALSE;
+
+    DECLARE ID_TIPO_DOCUMENTO_ENCONTRADA tab_tipodocumento.id_documento%TYPE;
+    DECLARE TIPO_DOCUMENTO_ENCONTRADA BOOLEAN := FALSE;
 
 
     BEGIN
@@ -260,9 +314,24 @@ $$
              RAISE NOTICE 'CORREO DUPLICADO';
         END IF;
 
+        --VALIDAR TIPO DE DOCUMENTO
+        SELECT num_documento INTO DOCUMENTO_ENCONTRADO FROM tab_datosPersonales WHERE tab_datosPersonales.num_documento = wnum_documento AND tab_datosPersonales.id_tipo_documento = wid_tipodocumento;
+        IF DOCUMENTO_ENCONTRADO IS NOT NULL THEN
+             DOCUMENTO_DUPLICADO = TRUE;
+             RAISE NOTICE 'DOCUMENTO DUPLICADO';
+        END IF;
 
-        --ESTE IF TIENE QUE VALIDAR : TAMANIONOMBRE>2, WEDAD_JUGADOR=>18  TAMANIO_NUM_TELEFONO=10,ES_CORREO=TRUE, CIUDAD_ENCONTRADA=TRUE , CORREO_DUPLICADO=FALSE
-        IF TAMANIO_NOMBRE>2 AND wedad_jugador>=18 AND TAMANIO_NUM_TELEFONO=10 AND ES_CORREO AND CIUDAD_ENCONTRADA AND CORREO_DUPLICADO=FALSE  THEN
+        SELECT id_documento INTO ID_TIPO_DOCUMENTO_ENCONTRADA FROM tab_tipodocumento WHERE tab_tipodocumento.id_documento = wid_tipodocumento;
+        IF ID_TIPO_DOCUMENTO_ENCONTRADA IS NOT NULL THEN
+             TIPO_DOCUMENTO_ENCONTRADA = TRUE;
+        END IF;
+        
+        
+
+
+        --ESTE IF TIENE QUE VALIDAR : TAMANIONOMBRE>2, WEDAD_JUGADOR=>13  TAMANIO_NUM_TELEFONO=10,ES_CORREO=TRUE, CIUDAD_ENCONTRADA=TRUE , CORREO_DUPLICADO=FALSE
+        --DOCUMENTO_DUPLICADO=FALSE , TIPO_DOCUMENTO_ENCONTRADA=TRUE
+        IF TAMANIO_NOMBRE>2 AND wedad_jugador>=13 AND TAMANIO_NUM_TELEFONO=10 AND ES_CORREO AND CIUDAD_ENCONTRADA AND CORREO_DUPLICADO=FALSE AND  DOCUMENTO_DUPLICADO=FALSE AND TIPO_DOCUMENTO_ENCONTRADA  THEN
             RETURN TRUE;
         ELSE
             RETURN FALSE;
@@ -276,7 +345,8 @@ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION fun_insert_datosPersonales(WULTIMOID tab_datosPersonales.id_datos%TYPE,wnombre_jugador tab_datosPersonales.nombre_jugador%TYPE,
                              wedad_jugador tab_datosPersonales.edad_jugador%TYPE,
                              wtel_jugador tab_datosPersonales.tel_jugador%TYPE,wcorreo_jugador tab_datosPersonales.correo_jugador%TYPE,
-                             wfoto_perfil_jugador tab_datosPersonales.foto_perfil_jugador%TYPE,wid_ciudad tab_datosPersonales.id_ciudad%type) RETURNS BOOLEAN AS
+                             wfoto_perfil_jugador tab_datosPersonales.foto_perfil_jugador%TYPE,wid_ciudad tab_datosPersonales.id_ciudad%type,
+                             wid_tipodocumento tab_datosPersonales.id_tipo_documento%TYPE, wnum_documento tab_datosPersonales.num_documento%TYPE) RETURNS BOOLEAN AS
 $$
     DECLARE
         wnombre_jugador_aux tab_datosPersonales.nombre_jugador%TYPE;
@@ -297,10 +367,10 @@ $$
          
         
       
-        IF fun_validar_datosPersonales_insert(wnombre_jugador_aux, wedad_jugador,wtel_jugador,wcorreo_jugador_aux,wfoto_perfil_jugador,wid_ciudad) THEN
+        IF fun_validar_datosPersonales_insert(wnombre_jugador_aux, wedad_jugador,wtel_jugador,wcorreo_jugador_aux,wfoto_perfil_jugador,wid_ciudad,wid_tipodocumento,wnum_documento) THEN
             RAISE NOTICE 'ATRIBUTOS INSERTADOS CORRECTAMENTE';
 
-            INSERT INTO tab_datosPersonales VALUES (WULTIMOID,wnombre_jugador_aux, wedad_jugador,wtel_jugador,wcorreo_jugador_aux,wfoto_perfil_jugador,wid_ciudad);
+            INSERT INTO tab_datosPersonales VALUES (WULTIMOID,wnombre_jugador_aux, wedad_jugador,wtel_jugador,wcorreo_jugador_aux,wfoto_perfil_jugador,wid_ciudad,wid_tipodocumento,wnum_documento);
             IF FOUND THEN
                 RAISE NOTICE 'ATRIBUTOS INSERTADOS CORRECTAMENTE';
                 RETURN TRUE;
@@ -373,6 +443,7 @@ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION fun_insert_jugador_datospersonales(wnombre_jugador tab_datosPersonales.nombre_jugador%TYPE, wedad_jugador tab_datosPersonales.edad_jugador%TYPE,
                              wtel_jugador tab_datosPersonales.tel_jugador%TYPE,wcorreo_jugador tab_datosPersonales.correo_jugador%TYPE,
                              wfoto_perfil_jugador tab_datosPersonales.foto_perfil_jugador%TYPE,wid_ciudad tab_datosPersonales.id_ciudad%type,
+                             wid_tipodocumento tab_datosPersonales.id_tipo_documento%TYPE, wnum_documento tab_datosPersonales.num_documento%TYPE,
 
                              wnickname_jugador tab_jugador.nickname_jugador%TYPE,
                              wliga_jugador tab_jugador.liga_jugador%TYPE,wlink_cuenta_jugador tab_jugador.link_cuenta_jugador%TYPE,
@@ -383,7 +454,7 @@ $$
        
     BEGIN
         SELECT funcion_Retorna_ultmoid('tab_datosPersonales','id_datos') INTO ULTIMOID_DATOSPERSONALES;
-        IF fun_insert_datosPersonales(ULTIMOID_DATOSPERSONALES,wnombre_jugador, wedad_jugador,wtel_jugador,wcorreo_jugador,wfoto_perfil_jugador,wid_ciudad) THEN
+        IF fun_insert_datosPersonales(ULTIMOID_DATOSPERSONALES,wnombre_jugador, wedad_jugador,wtel_jugador,wcorreo_jugador,wfoto_perfil_jugador,wid_ciudad,wid_tipodocumento,wnum_documento) THEN
            RAISE NOTICE 'DATOS PERSONALES ATRIBUTOS INSERTADOS CORRECTAMENTE';
             IF fun_validar_jugador_insert(ULTIMOID_DATOSPERSONALES, wnickname_jugador,wliga_jugador,wlink_cuenta_jugador,wid_game) THEN
                 RAISE NOTICE 'JUGADOR ATRIBUTOS INSERTADO CORRECTAMENTE';

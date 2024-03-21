@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS tab_jugador; --TABLA PRINCIPAL JUGADOR
 DROP TABLE IF EXISTS tab_datosPersonales; --TABLA PRINCIPAL DATOS PERSONALES
 DROP TABLE IF EXISTS tab_game; --TABLA PRINCIPAL GAME INDEPENDIENTE
 DROP TABLE IF EXISTS tab_ciudad; --TABLA PRINCIPAL CIUDAD
+DROP TABLE IF EXISTS tab_tipodocumento; --TABLA PRINCIPAL tipodoc
 DROP TABLE IF EXISTS tab_borrados; --TABLA PRINCIPAL BORRADOS AUDITORIA
 
 --CREACION DE TABLAS------------------------------------------------------------------------------------------------------------------------------
@@ -42,6 +43,18 @@ CREATE TABLE tab_ciudad -- CIUDAD
 
     PRIMARY KEY(id_ciudad)
 );
+CREATE TABLE tab_tipodocumento -- tipodocumento
+(
+    id_documento       INTEGER     NOT NULL CHECK(id_documento>0),
+    nom_documento      VARCHAR     NOT NULL,
+    desc_documento    VARCHAR     NOT NULL,
+    user_insert     VARCHAR,--     NOT NULL,
+	user_update     VARCHAR,
+	date_insert     TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
+	date_update     TIMESTAMP WITHOUT TIME ZONE ,
+
+    PRIMARY KEY(id_documento)
+);
 
 CREATE TABLE tab_game -- GAME
 (
@@ -68,13 +81,17 @@ CREATE TABLE tab_datosPersonales -- DATOS PERSONALES
     correo_jugador          VARCHAR     NOT NULL,
     foto_perfil_jugador     VARCHAR,
     id_ciudad               INTEGER     NOT NULL CHECK(id_ciudad>0),
+    id_tipo_documento       INTEGER     NOT NULL,
+    num_documento           VARCHAR     NOT NULL,
     user_insert             VARCHAR,     --NOT NULL,
     user_update             VARCHAR,
     date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
     date_update             TIMESTAMP WITHOUT TIME ZONE ,
 
     PRIMARY KEY(id_datos),
-    FOREIGN KEY(id_ciudad) REFERENCES tab_ciudad(id_ciudad)
+    FOREIGN KEY(id_ciudad) REFERENCES tab_ciudad(id_ciudad),
+    FOREIGN KEY(id_tipo_documento) REFERENCES tab_tipodocumento(id_documento)
+
     
 );
 

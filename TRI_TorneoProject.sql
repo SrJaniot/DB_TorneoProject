@@ -2,11 +2,21 @@
 
 --TRIGGERS---------------------------------------------------------------------------------------------------------------------------------------
 
+--DROP TRIGGER IF EXISTS tri_delete_tabla_ciudad ON tab_tipodocumento;
+--DROP TRIGGER IF EXISTS tri_actividad_tabla_ciudad ON tab_tipodocumento;
+
 -- TRIGGER PARA tab_ciudad --------------------------------------------------------------------------
 CREATE OR REPLACE TRIGGER tri_delete_tabla_ciudad AFTER DELETE ON tab_ciudad
 FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
 
 CREATE OR REPLACE TRIGGER tri_actividad_tabla_ciudad BEFORE INSERT OR UPDATE ON tab_ciudad
+FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
+
+-- TRIGGER PARA tab_tipodocumento --------------------------------------------------------------------------
+CREATE OR REPLACE TRIGGER tri_delete_tabla_tipodocumento AFTER DELETE ON tab_tipodocumento
+FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
+
+CREATE OR REPLACE TRIGGER tri_actividad_tabla_tipodocumento  BEFORE INSERT OR UPDATE ON tab_tipodocumento
 FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
 
 -- TRIGGER PARA tab_game ----------------------------------------------------------------------------

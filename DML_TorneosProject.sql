@@ -25,6 +25,14 @@ SELECT fun_insert_ciudad('piedecuesta','ciudad piedecuesta departamento santande
 
 --SELECT * FROM tab_ciudad;
 
+-- DML PARA LA TABLA TIPODOCUMENTO-------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT fun_insert_tipodocumento('cedula','documento de identidad colombiano');
+SELECT fun_insert_tipodocumento('pasaporte','documento de identidad internacional');
+SELECT fun_insert_tipodocumento('tarjeta de identidad','documento de identidad colombiano');
+SELECT fun_insert_tipodocumento('cedula de extranjeria','documento de identidad colombiano');
+
+--SELECT * FROM tab_tipodocumento;
+
 -- DML PARA LA TABLA GAME-------------------------------------------------------------------------------------------------------------------------------------------------------------
 SELECT fun_insert_game('league of legends','juego de estrategia en tiempo real',5,'https://static.wikia.nocookie.net/leagueoflegendsoficial/images/8/8c/LOL_Logo.png/revision/latest?cb=20180119195439&path-prefix=es');
 SELECT fun_insert_game('valorant','juego de disparos en primera persona',5,'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Valorant_logo.svg/1200px-Valorant_logo.svg.png');
@@ -35,7 +43,7 @@ SELECT fun_insert_game('overwatch','juego de disparos en primera persona',7,'htt
 --SELECT * FROM tab_game;
 
 -- DML PARA LAS TABLAS DATOSPERSONALES MAS JUGADOR------------------------------------------------------------------------------------------------------------------------------------------------------------- 
-SELECT fun_insert_jugador_datospersonales('esteban janiot',24,'3152901731','estebanjaniot10@gmail.com','https://fotodeesteban.com',1,
+SELECT fun_insert_jugador_datospersonales('esteban janiot',24,'3152901731','estebanjaniot10@gmail.com','https://fotodeesteban.com',1,1,'1098825375',
                                           'señor janiot','oro','https://www.op.gg/summoners/lan/Señor%20Janiot-LAN',1);
 SELECT fun_insert_jugador_datospersonales('Christian Torres',24,'3146808848','christianalexis399@gmail.com','https://fotodechristian.com',1,
                                           'Halomip','Esmeralda ','https://www.op.gg/summoners/lan/Halomip-LAN',1);
