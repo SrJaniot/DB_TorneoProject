@@ -14,6 +14,9 @@ DROP TRIGGER IF EXISTS tri_actividad_tabla_ciudad ON tab_ciudad;
 DROP TRIGGER IF EXISTS tri_delete_tabla_tipodocumento ON tab_tipodocumento;
 DROP TRIGGER IF EXISTS tri_actividad_tabla_tipodocumento ON tab_tipodocumento;
 
+DROP TRIGGER IF EXISTS tri_delete_tabla_evento ON tab_evento;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_evento ON tab_evento;
+
 DROP TRIGGER IF EXISTS tri_delete_tabla_game ON tab_game;
 DROP TRIGGER IF EXISTS tri_actividad_tabla_game ON tab_game;
 DROP TRIGGER IF EXISTS tri_delete_tabla_datosPersonales ON tab_datosPersonales;
@@ -607,7 +610,7 @@ CREATE OR REPLACE FUNCTION fun_validar_torneo_insert(wnom_torneo tab_torneo.nom_
                             wpremio_torneo_2 tab_torneo.premio_torneo_2%TYPE,wpremio_torneo_3 tab_torneo.premio_torneo_3%TYPE,
                             wvideo_explica_torneo tab_torneo.video_explica_torneo%TYPE,wcantidad_equipos tab_torneo.cantidad_equipos%TYPE,
                             wvalor_dinero_torneo tab_torneo.valor_dinero_torneo%TYPE,
-                            wid_game tab_torneo.id_game%TYPE  ) RETURNS BOOLEAN AS
+                            wid_game tab_torneo.id_game%TYPE, wid_evento tab_torneo.id_evento%TYPE  ) RETURNS BOOLEAN AS
 $$
     DECLARE TAMANIO_NOMBRE INTEGER;
     DECLARE NOMBRE_TORNEO_ENCONTRADO tab_torneo.nom_torneo%TYPE;
@@ -620,6 +623,10 @@ $$
     DECLARE FECHA_INICIO_MAYOR BOOLEAN := FALSE;
     DECLARE FECHA_FIN_MAYOR BOOLEAN := FALSE;
     DECLARE EQUIPOS_COMPLETOS_TORNEO BOOLEAN := FALSE;
+
+    DECLARE ID_EVENTO_ENCONTRADO tab_torneo.id_evento%TYPE;
+    DECLARE EVENTO_ENCONTRADO BOOLEAN := FALSE;
+
     BEGIN
         SELECT UPPER(wnom_torneo) INTO wnom_torneo;
         SELECT id_game INTO ID_GAME_ENCONTRADA FROM tab_game WHERE tab_game.id_game = wid_game;
@@ -645,8 +652,16 @@ $$
             EQUIPOS_COMPLETOS_TORNEO = TRUE;
         END IF;
 
+        --VALIDAR SI EL EVENTO EXISTE
+        SELECT id_evento INTO ID_EVENTO_ENCONTRADO FROM tab_evento WHERE tab_evento.id_evento = wid_evento;
+        IF ID_EVENTO_ENCONTRADO IS NOT NULL THEN
+            EVENTO_ENCONTRADO = TRUE;
+            RAISE NOTICE 'EVENTO  ENCONTRADO';
+        END IF;
+
         --ESTE IF TIENE QUE VALIDAR : TAMANIO_NOMBRE>2,  GAME_ENCONTRADA=TRUE , TORNEO_ENCONTRADO = FALSE, FECHA_INICIO_MAYOR=TRUE, FECHA_FIN_MAYOR=TRUE, EQUIPOS_COMPLETOS_TORNEO=TRUE
-        IF TAMANIO_NOMBRE>2 AND GAME_ENCONTRADA=TRUE AND TORNEO_ENCONTRADO=FALSE AND FECHA_INICIO_MAYOR=TRUE AND FECHA_FIN_MAYOR=TRUE AND EQUIPOS_COMPLETOS_TORNEO=TRUE THEN
+        --EVENTO_ENCONTRADO=TRUE
+        IF TAMANIO_NOMBRE>2 AND GAME_ENCONTRADA=TRUE AND TORNEO_ENCONTRADO=FALSE AND FECHA_INICIO_MAYOR=TRUE AND FECHA_FIN_MAYOR=TRUE AND EQUIPOS_COMPLETOS_TORNEO=TRUE AND EVENTO_ENCONTRADO=TRUE THEN
             RETURN TRUE;
         ELSE
             RETURN FALSE;
@@ -674,7 +689,8 @@ CREATE OR REPLACE FUNCTION fun_insert_torneo(wnom_torneo tab_torneo.nom_torneo%T
                             winformacion_reglas tab_torneo.informacion_reglas%TYPE,wfoto_premio_torneo_1 tab_torneo.foto_premio_torneo_1%TYPE,
                             wfoto_premio_torneo_2 tab_torneo.foto_premio_torneo_2%TYPE, wfoto_premio_torneo_3 tab_torneo.foto_premio_torneo_3%TYPE,
                             wfoto_carta_fondo tab_torneo.foto_carta_fondo%TYPE, wfoto_carta_titulo tab_torneo.foto_carta_titulo%TYPE,
-                            wfoto_carta_personaje tab_torneo.foto_carta_personaje%TYPE) RETURNS json AS
+                            wfoto_carta_personaje tab_torneo.foto_carta_personaje%TYPE, 
+                            wid_evento tab_torneo.id_evento%TYPE) RETURNS json AS
 
 $$
     DECLARE
@@ -687,7 +703,7 @@ $$
 
     BEGIN
         IF fun_validar_torneo_insert(wnom_torneo,wdesc_torneo,wfecha_inicio_torneo,wfecha_fin_torneo,wfoto_torneo,wpremio_torneo_1,
-                                     wpremio_torneo_2,wpremio_torneo_3,wvideo_explica_torneo,wcantidad_equipos,wvalor_dinero_torneo,wid_game) THEN
+                                     wpremio_torneo_2,wpremio_torneo_3,wvideo_explica_torneo,wcantidad_equipos,wvalor_dinero_torneo,wid_game,wid_evento) THEN
             SELECT funcion_Retorna_ultmoid('tab_torneo','id_torneo') INTO ULTIMOID;
             SELECT UPPER(wnom_torneo) INTO wnom_torneo_aux;
             SELECT LOWER(wfoto_torneo) INTO wfoto_torneo_aux;
@@ -697,6 +713,114 @@ $$
             INSERT INTO tab_torneo VALUES (ULTIMOID,wnom_torneo_aux, wdesc_torneo,wfecha_inicio_torneo,wfecha_fin_torneo,wfoto_torneo,
                                            wpremio_torneo_1,wpremio_torneo_2,wpremio_torneo_3,wvideo_explica_torneo_aux,wcantidad_equipos,cantidad_match,
                                            wvalor_dinero_torneo,wid_game,1,winformacion_general,winformacion_reglas,wfoto_premio_torneo_1,
+                                           wfoto_premio_torneo_2,wfoto_premio_torneo_3,wfoto_carta_fondo,wfoto_carta_titulo,wfoto_carta_personaje,wid_evento);
+            IF FOUND THEN
+                RETORNO.id_torneo := ULTIMOID;
+                RETORNO.resultado := TRUE;
+                RETURN row_to_json(RETORNO);
+            ELSE
+                RETORNO.resultado := FALSE;
+                RETORNO.id_torneo := NULL;
+                RETURN row_to_json(RETORNO);
+            END IF;
+        ELSE
+            RETORNO.resultado := FALSE;
+            RETORNO.id_torneo := NULL;
+            RETURN row_to_json(RETORNO);
+        END IF;
+    END;
+$$
+LANGUAGE plpgsql;
+
+
+--FUNCION PARA LA TABLA EVENTO tab_evento -------------------------------------------------------------------------------------------------------------------------------------------------------------
+--VALIDAR ATRIBUTOS DE LA TABLA tab_evento
+CREATE OR REPLACE FUNCTION fun_validar_evento_insert(wnom_evento tab_evento.nom_evento%TYPE, wdesc_evento  tab_evento.desc_evento%TYPE,
+                            wfecha_inicio_evento tab_evento.fecha_inicio_evento%TYPE,wfecha_fin_evento tab_evento.fecha_fin_evento%TYPE,
+                            foto_evento tab_torneo.foto_torneo%TYPE,premio_evento_1 tab_torneo.premio_torneo_1%TYPE,
+                            premio_evento_2 tab_torneo.premio_torneo_2%TYPE,premio_evento_3 tab_torneo.premio_torneo_3%TYPE,
+                            video_explica_evento tab_torneo.video_explica_torneo%TYPE,cantidad_personas tab_torneo.cantidad_equipos%TYPE,
+                            valor_dinero_evento tab_torneo.valor_dinero_torneo%TYPE) RETURNS BOOLEAN AS
+$$
+    DECLARE TAMANIO_NOMBRE INTEGER;
+    DECLARE NOMBRE_EVENTO_ENCONTRADO tab_torneo.nom_torneo%TYPE;
+    DECLARE EVENTO_ENCONTRADO BOOLEAN := FALSE;
+    DECLARE FECHA_INICIO DATE;
+    DECLARE FECHA_FIN DATE;
+    DECLARE FECHA_ACTUAL DATE;
+    DECLARE FECHA_INICIO_MAYOR BOOLEAN := FALSE;
+    DECLARE FECHA_FIN_MAYOR BOOLEAN := FALSE;
+    BEGIN
+        SELECT UPPER(wnom_evento) INTO wnom_evento;
+        SELECT nom_evento INTO NOMBRE_EVENTO_ENCONTRADO FROM tab_evento WHERE tab_evento.nom_evento = wnom_evento;
+        IF NOMBRE_EVENTO_ENCONTRADO IS NOT NULL THEN
+            EVENTO_ENCONTRADO = TRUE;
+            RAISE NOTICE 'EVENTO NOMBRE DUPLICADO';
+        END IF;
+        SELECT CHAR_LENGTH(wnom_evento)INTO TAMANIO_NOMBRE;
+        SELECT CAST(wfecha_inicio_evento AS DATE) INTO FECHA_INICIO;
+        SELECT CAST(wfecha_fin_evento AS DATE) INTO FECHA_FIN;
+        SELECT CURRENT_DATE INTO FECHA_ACTUAL;
+        IF FECHA_INICIO > FECHA_ACTUAL THEN
+            FECHA_INICIO_MAYOR = TRUE;
+        END IF;
+        IF FECHA_FIN > FECHA_ACTUAL AND FECHA_FIN >= FECHA_INICIO THEN
+            FECHA_FIN_MAYOR = TRUE;
+        END IF;
+        --ESTE IF TIENE QUE VALIDAR : TAMANIO_NOMBRE>2,  EVENTO_ENCONTRADO = FALSE, FECHA_INICIO_MAYOR=TRUE, FECHA_FIN_MAYOR=TRUE
+        IF TAMANIO_NOMBRE>2 AND EVENTO_ENCONTRADO=FALSE AND FECHA_INICIO_MAYOR=TRUE AND FECHA_FIN_MAYOR=TRUE THEN
+            RETURN TRUE;
+        ELSE
+            RETURN FALSE;
+        END IF;
+        
+       
+    END;
+$$
+LANGUAGE plpgsql;
+ 
+
+
+--FUNCION PARA INSERTAR DATOS EN LA TABLA tab_torneo CON PARAMETROS DE ENTRADA
+--defienendo el retorno de la funcion PARA DESPUES CONVERTIRLO EN JSON
+DROP TYPE IF EXISTS evento_result;
+CREATE TYPE evento_result AS (
+    id_torneo INTEGER,
+    resultado BOOLEAN
+);
+CREATE OR REPLACE FUNCTION fun_insert_evento( wnom_evento tab_evento.nom_evento%TYPE, wdesc_evento  tab_evento.desc_evento%TYPE,
+                            wfecha_inicio_evento tab_evento.fecha_inicio_evento%TYPE,wfecha_fin_evento tab_evento.fecha_fin_evento%TYPE,
+                            foto_evento tab_torneo.foto_torneo%TYPE,premio_evento_1 tab_torneo.premio_torneo_1%TYPE,
+                            premio_evento_2 tab_torneo.premio_torneo_2%TYPE,premio_evento_3 tab_torneo.premio_torneo_3%TYPE,
+                            video_explica_evento tab_torneo.video_explica_torneo%TYPE,cantidad_personas tab_torneo.cantidad_equipos%TYPE,
+                            valor_dinero_evento tab_torneo.valor_dinero_torneo%TYPE,
+                            
+                            winformacion_general tab_torneo.informacion_general%TYPE,
+                            winformacion_reglas tab_torneo.informacion_reglas%TYPE,wfoto_premio_torneo_1 tab_torneo.foto_premio_torneo_1%TYPE,
+                            wfoto_premio_torneo_2 tab_torneo.foto_premio_torneo_2%TYPE, wfoto_premio_torneo_3 tab_torneo.foto_premio_torneo_3%TYPE,
+                            wfoto_carta_fondo tab_torneo.foto_carta_fondo%TYPE, wfoto_carta_titulo tab_torneo.foto_carta_titulo%TYPE,
+                            wfoto_carta_personaje tab_torneo.foto_carta_personaje%TYPE) RETURNS json AS
+$$
+    DECLARE
+        RETORNO evento_result;
+        wnom_evento_aux tab_evento.nom_evento%TYPE;
+        foto_evento_aux tab_torneo.foto_torneo%TYPE;
+        wvideo_explica_evento_aux tab_torneo.video_explica_torneo%TYPE;
+        ULTIMOID INTEGER;
+        cantidad_match tab_torneo.cantidad_match%TYPE;
+
+    BEGIN
+        IF fun_validar_evento_insert(wnom_evento,wdesc_evento,wfecha_inicio_evento,wfecha_fin_evento,foto_evento,premio_evento_1,
+                                     premio_evento_2,premio_evento_3,video_explica_evento,cantidad_personas,valor_dinero_evento) THEN
+            SELECT funcion_Retorna_ultmoid('tab_evento','id_evento') INTO ULTIMOID;
+            SELECT UPPER(wnom_evento) INTO wnom_evento_aux;
+            SELECT LOWER(foto_evento) INTO foto_evento_aux;
+            SELECT LOWER(video_explica_evento) INTO wvideo_explica_evento_aux;
+            cantidad_match := cantidad_personas;
+            
+            INSERT INTO tab_evento VALUES (ULTIMOID,wnom_evento_aux, wdesc_evento,wfecha_inicio_evento,wfecha_fin_evento,foto_evento_aux,
+                                           premio_evento_1,premio_evento_2,premio_evento_3,wvideo_explica_evento_aux,cantidad_personas,
+                                           valor_dinero_evento,1,winformacion_general,winformacion_reglas,wfoto_premio_torneo_1,
                                            wfoto_premio_torneo_2,wfoto_premio_torneo_3,wfoto_carta_fondo,wfoto_carta_titulo,wfoto_carta_personaje);
             IF FOUND THEN
                 RETORNO.id_torneo := ULTIMOID;
@@ -715,6 +839,9 @@ $$
     END;
 $$
 LANGUAGE plpgsql;
+
+
+
 
 
 -- FUNCION QUE ME PERMITE VINCULAR UN JUGADOR A UN EQUIPO EN tab_jugador_equipo
@@ -1202,3 +1329,36 @@ $$
 
 $$
 LANGUAGE PLPGSQL;
+
+
+
+
+--funcion que registra la asistencia de un usuario a un evento
+CREATE OR REPLACE FUNCTION fun_insert_asistencia_evento(wid_evento tab_evento.id_evento%TYPE,
+                                 wid_usuario tab_datosPersonales.id_datos%TYPE,
+                                 whash_usuario_evento tab_usuario_evento.hash_usuario_evento%TYPE ) RETURNS BOOLEAN AS
+$$
+    DECLARE ULTIMOID_JUGADOR INTEGER;
+
+    BEGIN
+        SELECT funcion_Retorna_ultmoid('tab_usuario_evento','id_usuario_evento') INTO ULTIMOID_JUGADOR;
+    
+        INSERT INTO tab_usuario_evento (id_usuario_evento, id_evento, id_datos_persona, hash_usuario_evento) 
+        VALUES (ULTIMOID_JUGADOR, wid_evento, wid_usuario, whash_usuario_evento); 
+            IF FOUND THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
+    END;
+$$
+LANGUAGE PLPGSQL;
+
+
+
+
+
+
+
+
+

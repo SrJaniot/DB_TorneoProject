@@ -52,6 +52,15 @@ DROP TRIGGER IF EXISTS tri_delete_tabla_equipo_fun_INSERTALIDER ON tab_equipo;
 CREATE OR REPLACE TRIGGER tri_fun_INSERTALIDER AFTER INSERT ON tab_equipo
 FOR EACH ROW EXECUTE PROCEDURE fun_INSERTALIDER();
 
+-- TRIGGER PARA tab_evento ---------------------------------------------------------------------------
+
+
+CREATE OR REPLACE TRIGGER tri_delete_tabla_evento AFTER DELETE ON tab_evento
+FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
+
+CREATE OR REPLACE TRIGGER tri_actividad_tabla_evento BEFORE INSERT OR UPDATE ON tab_evento
+FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
+
 
 
 

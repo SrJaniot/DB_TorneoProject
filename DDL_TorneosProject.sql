@@ -8,6 +8,7 @@ DROP TYPE IF EXISTS jugador_perfil CASCADE;
 
 DROP TABLE IF EXISTS tab_equipo_torneo; --TABLA INTERMEDIA
 DROP TABLE IF EXISTS tab_jugador_equipo; --TABLA INTERMEDIA
+DROP TABLE IF EXISTS tab_usuario_evento; --TABLA INTERMEDIA
 DROP TABLE IF EXISTS tab_match; --TABLA PRINCIPAL PARTIDO
 DROP TABLE IF EXISTS tab_torneo; --TABLA PRINCIPAL TORNEO
 DROP TABLE IF EXISTS tab_equipo; --TABLA PRINCIPAL EQUIPO
@@ -17,6 +18,7 @@ DROP TABLE IF EXISTS tab_game; --TABLA PRINCIPAL GAME INDEPENDIENTE
 DROP TABLE IF EXISTS tab_ciudad; --TABLA PRINCIPAL CIUDAD
 DROP TABLE IF EXISTS tab_tipodocumento; --TABLA PRINCIPAL tipodoc
 DROP TABLE IF EXISTS tab_borrados; --TABLA PRINCIPAL BORRADOS AUDITORIA
+DROP TABLE IF EXISTS tab_evento; --TABLA PRINCIPAL EVENTO
 
 --CREACION DE TABLAS------------------------------------------------------------------------------------------------------------------------------
 
@@ -136,6 +138,39 @@ CREATE TABLE tab_equipo -- EQUIPO
     FOREIGN KEY(lider_equipo) REFERENCES tab_jugador(id_jugador)
 );
 
+CREATE TABLE tab_evento -- EVENTO
+(
+    id_evento               INTEGER     NOT NULL CHECK(id_evento>0),
+    nom_evento              VARCHAR     NOT NULL,
+    desc_evento             VARCHAR     NOT NULL,
+    fecha_inicio_evento     TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    fecha_fin_evento        TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    foto_evento             VARCHAR     NOT NULL,
+    premio_evento_1         VARCHAR     NOT NULL,
+    premio_evento_2         VARCHAR     NOT NULL,
+    premio_evento_3         VARCHAR     NOT NULL,
+    video_explica_evento    VARCHAR     NOT NULL,
+    cantidad_personas       INTEGER     NOT NULL,
+    valor_dinero_evento     INTEGER     NOT NULL,
+    estado_evento           INTEGER     NOT NULL default 1, -- 1 = inscirbir, 2  = cerrado
+    --variables extras
+    informacion_general     VARCHAR     NOT NULL,
+    informacion_reglas      VARCHAR     NOT NULL,
+    foto_premio_evento_1    VARCHAR     NOT NULL,
+    foto_premio_evento_2    VARCHAR     NOT NULL,
+    foto_premio_evento_3    VARCHAR     NOT NULL,
+    foto_carta_fondo        VARCHAR     NOT NULL,
+    foto_carta_titulo       VARCHAR     NOT NULL,
+    foto_carta_personaje    VARCHAR     NOT NULL,
+    --variables de auditoria
+    user_insert             VARCHAR,--     NOT NULL,
+    user_update             VARCHAR,
+    date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
+    date_update             TIMESTAMP WITHOUT TIME ZONE ,
+
+    PRIMARY KEY(id_evento)
+);
+
 
 CREATE TABLE tab_torneo -- TORNEO
 (
@@ -163,6 +198,7 @@ CREATE TABLE tab_torneo -- TORNEO
     foto_carta_fondo        VARCHAR     NOT NULL,
     foto_carta_titulo       VARCHAR     NOT NULL,
     foto_carta_personaje    VARCHAR     NOT NULL,
+    id_evento               INTEGER     NOT NULL CHECK(id_evento>0),
     --variables de auditoria
     user_insert             VARCHAR,--     NOT NULL,
     user_update             VARCHAR,
@@ -170,7 +206,8 @@ CREATE TABLE tab_torneo -- TORNEO
     date_update             TIMESTAMP WITHOUT TIME ZONE ,
 
     PRIMARY KEY(id_torneo),
-    FOREIGN KEY(id_game) REFERENCES tab_game(id_game)
+    FOREIGN KEY(id_game) REFERENCES tab_game(id_game),
+    FOREIGN KEY(id_evento) REFERENCES tab_evento(id_evento)
 );
 
 
@@ -229,6 +266,23 @@ CREATE TABLE tab_equipo_torneo -- TABLA INTERMEDIA EQUIPO TORNEO
     PRIMARY KEY(id_equipo_torneo),
     FOREIGN KEY(id_equipo) REFERENCES tab_equipo(id_equipo),
     FOREIGN KEY(id_torneo) REFERENCES tab_torneo(id_torneo)
+);
+
+CREATE TABLE tab_usuario_evento
+(
+    id_usuario_evento       INTEGER     NOT NULL CHECK(id_usuario_evento>0),
+    id_evento               INTEGER     NOT NULL CHECK(id_evento>0),
+    id_datos_persona        INTEGER     NOT NULL CHECK(id_datos_persona>0),
+    hash_usuario_evento     VARCHAR     NOT NULL,
+    asistencia              BOOLEAN     NOT NULL default FALSE, -- TRUE = ASISTIO, FALSE = NO ASISTIO
+    user_insert             VARCHAR,--     NOT NULL,
+    user_update             VARCHAR,
+    date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
+    date_update             TIMESTAMP WITHOUT TIME ZONE ,
+
+    PRIMARY KEY(id_usuario_evento),
+    FOREIGN KEY(id_evento) REFERENCES tab_evento(id_evento),
+    FOREIGN KEY(id_datos_persona) REFERENCES tab_datosPersonales(id_datos)
 );
 
 

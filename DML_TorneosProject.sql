@@ -79,11 +79,18 @@ SELECT fun_insert_equipo('teaM SRHALOMIP','equipo de league of legends','https:/
 
 --SELECT * FROM tab_equipo;
 
+--DML PARA LA TABLA EVENTO-------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT fun_insert_evento('evento frikifest','descripcion',TIMESTAMP '2024-12-24 23:59:59',TIMESTAMP '2024-12-25 23:59:59',
+                        'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',100,100000,
+                        'prueba','prueba','prueba','prueba','prueba','prueba','prueba','prueba');
+
+--SELECT * FROM tab_evento;
+
 -- DML PARA LA TABLA TORNEO-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 SELECT fun_insert_torneo('League of mini','torneo de league of legends de 8 equipos',TIMESTAMP '2024-12-24 23:59:59',TIMESTAMP '2024-12-25 23:59:59',
                         'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',8,100000,1,
-                        'prueba','prueba','prueba','prueba','prueba','prueba','prueba','prueba');
+                        'prueba','prueba','prueba','prueba','prueba','prueba','prueba','prueba',1);
 SELECT fun_insert_torneo('League of flash','torneo de league of legends de 16 equipos',TIMESTAMP '2024-12-24 23:59:59',TIMESTAMP '2024-12-25 23:59:59',
                         'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',16,100000,1);
 SELECT fun_insert_torneo('League of low','torneo de league of legends de 32 equipos',TIMESTAMP '2024-12-24 23:59:59',TIMESTAMP '2024-12-25 23:59:59',
@@ -124,6 +131,7 @@ SELECT fun_get_equipoFULL(1);
 SELECT fun_get_jugador_ID_PERFIL(1);
 
 
-
+--FUNCION PARA INSERTAR TIKET-------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT fun_insert_asistencia_evento(1,1,'HASH');
 
 
