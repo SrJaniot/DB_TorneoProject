@@ -5,6 +5,7 @@
 --VALIDADORAS TRUE=CORRECTO, FALSE=INCORRECTO
 
 
+
 -- ALL VARCHAR VA EN MAYUSCULA MENOS FOTOS Y ARCHIVOS
 
 --DROPEOS DE TRIGGERS SI EXISTEN-------------------------------------------------------------------------------------------------------------------------------------------------------------   
@@ -917,6 +918,79 @@ $$
 LANGUAGE plpgsql;
 
 
+
+
+
+--funcion que registra la asistencia de un usuario a un evento en la tabla tab_usuario_evento
+CREATE OR REPLACE FUNCTION fun_insert_asistencia_evento(wid_evento tab_evento.id_evento%TYPE,
+                                 wid_usuario tab_datosPersonales.id_datos%TYPE,
+                                 whash_usuario_evento tab_usuario_evento.hash_usuario_evento%TYPE ) RETURNS BOOLEAN AS
+$$
+    DECLARE ULTIMOID_JUGADOR INTEGER;
+    DECLARE ID_JUGADOR_ENCONTRADO INTEGER;
+    DECLARE JUGADOR_ENCONTRADO BOOLEAN := FALSE;
+    DECLARE ID_EVENTO_ENCONTRADO INTEGER;
+    DECLARE EVENTO_ENCONTRADO BOOLEAN:=FALSE;
+    DECLARE AFORO_EVENTO INTEGER;
+    DECLARE CANTIDAD_PERSONAS_REGISTRADAS INTEGER;
+    DECLARE ID_USUARIO_ENCONTRADO INTEGER;
+    DECLARE USUARIO_ENCONTRADO BOOLEAN:=FALSE;
+
+    BEGIN
+        -- VALIDA QUE EL JUGADOR NO ESTE YA REGISTRADO EN LA TABLA DE usuario_evento es decir que si ya genero tiquete.
+        SELECT id_datos_persona INTO ID_JUGADOR_ENCONTRADO FROM tab_usuario_evento WHERE id_datos_persona=wid_usuario;
+        IF ID_JUGADOR_ENCONTRADO IS NOT NULL THEN
+            JUGADOR_ENCONTRADO = TRUE;
+            
+        END IF;
+        --VALIDAR DE QUE EXISTA EL EVENTO Y QUE ESTE ACTIVO PARA INSCRIPSION
+        SELECT id_evento INTO ID_EVENTO_ENCONTRADO FROM tab_evento WHERE id_evento=wid_evento AND estado_evento=1;
+        IF ID_EVENTO_ENCONTRADO IS NOT NULL THEN
+            EVENTO_ENCONTRADO= TRUE;
+        END IF;
+        --VALIDAR QUE EL AFORO DEL EVENTO NO ESTE LLENO
+        SELECT cantidad_personas INTO AFORO_EVENTO FROM tab_evento WHERE id_evento=wid_evento;
+        SELECT COUNT(*) INTO CANTIDAD_PERSONAS_REGISTRADAS FROM tab_usuario_evento WHERE id_evento=wid_evento;
+
+        --VALIDAR QUE EL USUARIO EXISTA
+        SELECT id_datos INTO ID_USUARIO_ENCONTRADO FROM tab_datosPersonales WHERE id_datos=wid_usuario;
+        IF ID_USUARIO_ENCONTRADO IS NOT NULL THEN
+            USUARIO_ENCONTRADO = TRUE;
+        END IF;
+
+        SELECT funcion_Retorna_ultmoid('tab_usuario_evento','id_usuario_evento') INTO ULTIMOID_JUGADOR;
+        -- IMPRIMIR LOS VALORES DE LAS VARIABLES
+        RAISE NOTICE 'JUGADOR ENCONTRADO EN LA LISTA DE YA REGISTRADOS, SI ES T NO PUEDE REGISTRARSE OTRAVEZ %',JUGADOR_ENCONTRADO;
+        RAISE NOTICE 'EVENTO ENCONTRADO %',EVENTO_ENCONTRADO;
+        RAISE NOTICE 'AFORO EVENTO %',AFORO_EVENTO;
+        RAISE NOTICE 'CANTIDAD PERSONAS REGISTRADAS %',CANTIDAD_PERSONAS_REGISTRADAS;
+        RAISE NOTICE 'USUARIO ENCONTRADO %',USUARIO_ENCONTRADO;
+        --IMPRIMIR COMPARACION ENTRE AFORO Y CANTIDAD DE PERSONAS REGISTRADAS
+        RAISE NOTICE 'COMPARACION AFORO Y CANTIDAD DE PERSONAS REGISTRADAS %',CANTIDAD_PERSONAS_REGISTRADAS<=AFORO_EVENTO;
+
+        --VALIDAR QUE EL JUGADOR NO ESTE REGISTRADO EN EL EVENTO, QUE EL EVENTO EXISTA Y QUE EL AFORO NO ESTE LLENO Y QUE EL USUARIO EXISTA
+
+        IF NOT JUGADOR_ENCONTRADO AND EVENTO_ENCONTRADO AND CANTIDAD_PERSONAS_REGISTRADAS <= AFORO_EVENTO AND USUARIO_ENCONTRADO  THEN
+            INSERT INTO tab_usuario_evento (id_usuario_evento, id_evento, id_datos_persona, hash_usuario_evento) 
+            VALUES (ULTIMOID_JUGADOR, wid_evento, wid_usuario, whash_usuario_evento); 
+                IF FOUND THEN
+                    RETURN TRUE;
+                ELSE
+                    RETURN FALSE;
+                END IF;
+        END IF;
+        RETURN FALSE;
+
+    END;
+$$
+LANGUAGE PLPGSQL;
+
+
+
+
+
+
+
 --FUNCION QUE PERMINTE VINCULAR UN EQUIPO A UN TORNEO EN tab_equipo_torneo
 CREATE OR REPLACE FUNCTION fun_insert_equipo_torneo(wid_equipo tab_equipo_torneo.id_equipo%TYPE,
                                  wid_torneo tab_equipo_torneo.id_torneo%TYPE,wid_liderEquipo tab_equipo.lider_equipo%TYPE) RETURNS BOOLEAN AS
@@ -1046,6 +1120,59 @@ LANGUAGE PLPGSQL;
 
 
 
+
+
+
+--FUNCION GET PARA OBTENER LOS DATOS DE UN EVENTO MAS NOMBRES DE LOS TORNEOS ASOCIADOS AL EVENTO CON EL ID DEL EVENTO, RETORNA UN JSON
+
+CREATE OR REPLACE FUNCTION fun_get_evento(wid_evento tab_evento.id_evento%TYPE) RETURNS json AS
+$$
+    BEGIN
+        RETURN (
+            SELECT row_to_json(eventoFULL_result) -- Punto 3: Convertir el resultado a JSON
+            FROM (
+                SELECT 
+                    tab_evento.*, -- Punto 2: Selección de todas las columnas de tab_evento
+                    array_agg(
+                        (SELECT r FROM (SELECT tab_torneo.id_torneo, tab_torneo.nom_torneo, tab_torneo.foto_torneo) r) -- Punto 2: Agregar los torneos asociados a tab_evento en un array JSON
+                    ) AS torneos 
+                FROM 
+                    tab_evento
+                    INNER JOIN tab_torneo ON tab_evento.id_evento = tab_torneo.id_evento -- Punto 2: INNER JOIN para unir las tablas tab_evento y tab_torneo
+                WHERE 
+                    tab_evento.id_evento = wid_evento -- Punto 2: Filtrar por el id_evento especificado por el parámetro wid_evento
+                GROUP BY
+                    tab_evento.id_evento -- Punto 2: Agrupar por id_evento para asegurar un solo resultado por evento
+            ) eventoFULL_result
+        );
+    END;
+$$
+LANGUAGE PLPGSQL;
+
+
+CREATE OR REPLACE FUNCTION fun_get_evento2(wid_evento tab_evento.id_evento%TYPE) RETURNS json AS
+$$
+    BEGIN
+        RETURN (
+            SELECT row_to_json(eventoFULL_result) 
+            FROM (
+                SELECT 
+                    tab_evento.*, 
+                    json_agg(
+                        CASE WHEN tab_torneo.id_torneo IS NOT NULL THEN (SELECT r FROM (SELECT tab_torneo.id_torneo, tab_torneo.nom_torneo, tab_torneo.foto_torneo) r) END
+                    ) AS torneos 
+                FROM 
+                    tab_evento
+                    LEFT JOIN tab_torneo ON tab_evento.id_evento = tab_torneo.id_evento 
+                WHERE 
+                    tab_evento.id_evento = wid_evento 
+                GROUP BY
+                    tab_evento.id_evento 
+            ) eventoFULL_result
+        );
+    END;
+$$
+LANGUAGE PLPGSQL;
 
 
 
@@ -1333,26 +1460,11 @@ LANGUAGE PLPGSQL;
 
 
 
---funcion que registra la asistencia de un usuario a un evento
-CREATE OR REPLACE FUNCTION fun_insert_asistencia_evento(wid_evento tab_evento.id_evento%TYPE,
-                                 wid_usuario tab_datosPersonales.id_datos%TYPE,
-                                 whash_usuario_evento tab_usuario_evento.hash_usuario_evento%TYPE ) RETURNS BOOLEAN AS
-$$
-    DECLARE ULTIMOID_JUGADOR INTEGER;
 
-    BEGIN
-        SELECT funcion_Retorna_ultmoid('tab_usuario_evento','id_usuario_evento') INTO ULTIMOID_JUGADOR;
-    
-        INSERT INTO tab_usuario_evento (id_usuario_evento, id_evento, id_datos_persona, hash_usuario_evento) 
-        VALUES (ULTIMOID_JUGADOR, wid_evento, wid_usuario, whash_usuario_evento); 
-            IF FOUND THEN
-                RETURN TRUE;
-            ELSE
-                RETURN FALSE;
-            END IF;
-    END;
-$$
-LANGUAGE PLPGSQL;
+
+
+
+
 
 
 
