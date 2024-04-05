@@ -96,6 +96,13 @@ FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
 CREATE OR REPLACE TRIGGER tri_actividad_tabla_equipo_torneo BEFORE INSERT OR UPDATE ON tab_equipo_torneo
 FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
 
+--TRIGGER PARA tab_usuario_torneo --------------------------------------------------------------------
+CREATE OR REPLACE TRIGGER tri_delete_tabla_usuario_torneo AFTER DELETE ON tab_usuario_torneo
+FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
+
+CREATE OR REPLACE TRIGGER tri_actividad_tabla_usuario_torneo BEFORE INSERT OR UPDATE ON tab_usuario_torneo
+FOR EACH ROW EXECUTE PROCEDURE fun_act_tabla();
+
 -------------------------------------------------------------------------------------------------------------------------------------------------
 
 

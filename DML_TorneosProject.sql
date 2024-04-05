@@ -35,7 +35,9 @@ SELECT fun_insert_tipodocumento('cedula de extranjeria','documento de identidad 
 
 -- DML PARA LA TABLA GAME-------------------------------------------------------------------------------------------------------------------------------------------------------------
 SELECT fun_insert_game('league of legends','juego de estrategia en tiempo real',5,'https://static.wikia.nocookie.net/leagueoflegendsoficial/images/8/8c/LOL_Logo.png/revision/latest?cb=20180119195439&path-prefix=es');
-SELECT fun_insert_game('valorant','juego de disparos en primera persona',5,'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Valorant_logo.svg/1200px-Valorant_logo.svg.png');
+SELECT fun_insert_game('Torneo Individual','Creado para permitir crear torneos de 1 sola persona es decir sin equipo, para las actividades del evento',1,'xxxxxx');
+
+
 SELECT fun_insert_game('counter strike','juego de disparos en primera persona',5,'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/CS-GO_Logo.svg/1200px-CS-GO_Logo.svg.png');
 SELECT fun_insert_game('dota 2','juego de estrategia en tiempo real',5,'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Dota_2_logo.svg/1200px-Dota_2_logo.svg.png');
 SELECT fun_insert_game('overwatch','juego de disparos en primera persona',7,'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Overwatch_circle_logo.svg/1200px-Overwatch_circle_logo.svg.png');
@@ -90,7 +92,15 @@ SELECT fun_insert_evento('evento frikifest','descripcion',TIMESTAMP '2024-12-24 
 
 SELECT fun_insert_torneo('League of mini evento2','torneo de league of legends de 8 equipos',TIMESTAMP '2024-12-24 23:59:59',TIMESTAMP '2024-12-25 23:59:59',
                         'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',8,100000,1,
-                        'prueba','prueba','prueba','prueba','prueba','prueba','prueba','prueba',2);
+                        'prueba','prueba','prueba','prueba','prueba','prueba','prueba','prueba',1);
+
+SELECT fun_insert_torneo('cosplay','torneo de cosplay para solo 1 persona',TIMESTAMP '2024-12-24 23:59:59',TIMESTAMP '2024-12-25 23:59:59',
+                        'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',8,100000,2,
+                        'prueba','prueba','prueba','prueba','prueba','prueba','prueba','prueba',1);
+
+
+
+
 SELECT fun_insert_torneo('League of flash','torneo de league of legends de 16 equipos',TIMESTAMP '2024-12-24 23:59:59',TIMESTAMP '2024-12-25 23:59:59',
                         'https://fotodetorneo.com','500.000 PESOS','300.000 PESOS','200.000 PESOS','https://videodeexplicacion.com',16,100000,1);
 SELECT fun_insert_torneo('League of low','torneo de league of legends de 32 equipos',TIMESTAMP '2024-12-24 23:59:59',TIMESTAMP '2024-12-25 23:59:59',
@@ -123,6 +133,10 @@ SELECT fun_insert_equipo_torneo(2,1,1);
 --SELECT * FROM tab_equipo_torneo;
 
 
+-- FUNCION QUE ME PERMITE INSERTAR fun_insert_usuario_torneo---------------------------------------- 
+SELECT fun_insert_usuario_torneo(1,1);
+
+
 --FUNCION QUE ME RETORNA EQUIPOFULL----------------------------------------------------------
 SELECT fun_get_equipoFULL(1);
 
@@ -140,4 +154,12 @@ SELECT fun_get_evento(3);
 SELECT fun_get_evento2(3);
 
 --SELECT * FROM tab_evento;
+
+--FUNCION QUE ME PERMITE VALIDAR EL AFORO DE UN EVENTO-------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT fun_validar_aforo_evento(1);
+
+
+--FUNCION QUE PERMITE VALIDAR fun_validar_numero_integrantes_equipo_torneo
+SELECT fun_validar_numero_integrantes_equipo_torneo(1);
+
 

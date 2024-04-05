@@ -35,6 +35,11 @@ DROP TRIGGER IF EXISTS tri_delete_tabla_jugador_equipo ON tab_jugador_equipo;
 DROP TRIGGER IF EXISTS tri_actividad_tabla_jugador_equipo ON tab_jugador_equipo;
 DROP TRIGGER IF EXISTS tri_delete_tabla_equipo_torneo ON tab_equipo_torneo;
 DROP TRIGGER IF EXISTS tri_actividad_tabla_equipo_torneo ON tab_equipo_torneo;
+
+DROP TRIGGER IF EXISTS tri_delete_tabla_usuario_torneo ON tab_usuario_torneo;
+DROP TRIGGER IF EXISTS tri_actividad_tabla_usuario_torneo ON tab_usuario_torneo;
+
+
 DROP TRIGGER IF EXISTS tri_delete_tabla_jugador_torneo ON tab_jugador_torneo;
 DROP TRIGGER IF EXISTS tri_actividad_tabla_jugador_torneo ON tab_jugador_torneo;
 DROP TRIGGER IF EXISTS tri_delete_tabla_equipo_match ON tab_equipo_match;
@@ -970,7 +975,7 @@ $$
 
         --VALIDAR QUE EL JUGADOR NO ESTE REGISTRADO EN EL EVENTO, QUE EL EVENTO EXISTA Y QUE EL AFORO NO ESTE LLENO Y QUE EL USUARIO EXISTA
 
-        IF NOT JUGADOR_ENCONTRADO AND EVENTO_ENCONTRADO AND CANTIDAD_PERSONAS_REGISTRADAS <= AFORO_EVENTO AND USUARIO_ENCONTRADO  THEN
+        IF NOT JUGADOR_ENCONTRADO AND EVENTO_ENCONTRADO AND CANTIDAD_PERSONAS_REGISTRADAS < AFORO_EVENTO AND USUARIO_ENCONTRADO  THEN
             INSERT INTO tab_usuario_evento (id_usuario_evento, id_evento, id_datos_persona, hash_usuario_evento) 
             VALUES (ULTIMOID_JUGADOR, wid_evento, wid_usuario, whash_usuario_evento); 
                 IF FOUND THEN
@@ -984,6 +989,63 @@ $$
     END;
 $$
 LANGUAGE PLPGSQL;
+
+
+-- FUNCION PARA HABILITAR BOTONES EN EL FRONTED:
+-- FUNCION QUE ME RETORNA BOOLEANO SI EL AFORO DEL EVENTO AUN PERMITE EL REGISTRO DE NUEVOS USUARIOS
+
+
+CREATE OR REPLACE FUNCTION fun_validar_aforo_evento(wid_evento tab_evento.id_evento%TYPE) RETURNS BOOLEAN AS
+$$
+    DECLARE ID_EVENTO_ENCONTRADO INTEGER;
+    DECLARE EVENTO_ENCONTRADO BOOLEAN:=FALSE;
+   
+    DECLARE AFORO_EVENTO INTEGER;
+    DECLARE CANTIDAD_PERSONAS_REGISTRADAS INTEGER;
+
+    BEGIN
+        --VALIDAR DE QUE EXISTA EL EVENTO Y QUE ESTE ACTIVO PARA INSCRIPSION
+        SELECT id_evento INTO ID_EVENTO_ENCONTRADO FROM tab_evento WHERE id_evento=wid_evento AND estado_evento=1;
+        IF ID_EVENTO_ENCONTRADO IS NOT NULL THEN
+            EVENTO_ENCONTRADO= TRUE;
+        END IF;
+        
+        --VALIDAR QUE EL AFORO DEL EVENTO NO ESTE LLENO
+        SELECT cantidad_personas INTO AFORO_EVENTO FROM tab_evento WHERE id_evento=wid_evento;
+        SELECT COUNT(*) INTO CANTIDAD_PERSONAS_REGISTRADAS FROM tab_usuario_evento WHERE id_evento=wid_evento;
+
+        RAISE NOTICE 'EVENTO ENCONTRADO %',EVENTO_ENCONTRADO;
+        RAISE NOTICE 'AFORO EVENTO %',AFORO_EVENTO;
+        RAISE NOTICE 'CANTIDAD PERSONAS REGISTRADAS %',CANTIDAD_PERSONAS_REGISTRADAS;
+        --IMPRIMIR COMPARACION ENTRE AFORO Y CANTIDAD DE PERSONAS REGISTRADAS
+        RAISE NOTICE 'COMPARACION AFORO Y CANTIDAD DE PERSONAS REGISTRADAS %',CANTIDAD_PERSONAS_REGISTRADAS<=AFORO_EVENTO;
+
+        --VALIDAR QUE EL JUGADOR NO ESTE REGISTRADO EN EL EVENTO, QUE EL EVENTO EXISTA Y QUE EL AFORO NO ESTE LLENO Y QUE EL USUARIO EXISTA
+
+        IF  EVENTO_ENCONTRADO AND CANTIDAD_PERSONAS_REGISTRADAS < AFORO_EVENTO   THEN
+            RETURN TRUE;
+        END IF;
+        RETURN FALSE;
+    END;
+$$
+LANGUAGE PLPGSQL;
+
+
+--FUNCION PARA VALIDAR SI EL NUMERO DE JUGADORES DE EQUIPO DE UN TORNEO ES MAYOR A 1
+CREATE OR REPLACE FUNCTION fun_validar_numero_integrantes_equipo_torneo(wid_torneo tab_equipo_torneo.id_torneo%TYPE) RETURNS INTEGER AS
+$$  
+    DECLARE tamanio_equipos_torneo INTEGER := 0;
+    DECLARE id_juego INTEGER;
+
+    BEGIN
+        SELECT id_game INTO id_juego FROM tab_torneo WHERE tab_torneo.id_torneo = wid_torneo;
+        SELECT tamanio_equipos INTO tamanio_equipos_torneo FROM tab_game WHERE tab_game.id_game = id_juego;
+        RETURN tamanio_equipos_torneo;
+    END;
+$$
+LANGUAGE PLPGSQL;
+
+
 
 
 
@@ -1075,6 +1137,76 @@ $$
         IF EQUIPO_ENCONTRADO AND TORNEO_ENCONTRADO AND NOT EQUIPO_TORNEO_ENCONTRADO AND NOT CANTIDAD_EQUIPOS_TORNEO_MAYOR AND 
         GAME_IGUALES AND TAMANIO_JUGADORES_EQUIPO=TAMANIO_JUGADORES_GAME AND USUARIO_LIDER_EQUIPO THEN
             INSERT INTO tab_equipo_torneo VALUES (ULTIMOID,wid_equipo,wid_torneo,TRUE);
+            IF FOUND THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
+        ELSE
+            RETURN FALSE;
+        END IF;
+    END;
+$$
+LANGUAGE plpgsql;
+
+
+
+--FUNCION QUE ME PERMITE VINCULAR UN USUARIO A UN TORNEO EN tab_usuario_torneo
+CREATE OR REPLACE FUNCTION fun_insert_usuario_torneo(wid_usuario tab_usuario_torneo.id_datos_persona%TYPE,
+                                 wid_torneo tab_usuario_torneo.id_torneo%TYPE) RETURNS BOOLEAN AS
+$$
+    DECLARE
+        ULTIMOID INTEGER;
+        ID_USUARIO_ENCONTRADO tab_usuario_torneo.id_datos_persona%TYPE;
+        USUARIO_ENCONTRADO BOOLEAN := FALSE;
+        ID_TORNEO_ENCONTRADO tab_usuario_torneo.id_torneo%TYPE;
+        TORNEO_ENCONTRADO BOOLEAN := FALSE;
+        ID_USUARIO_TORNEO_ENCONTRADO tab_usuario_torneo.id_datos_persona%TYPE;
+        USUARIO_TORNEO_ENCONTRADO BOOLEAN := FALSE;
+        TAMANIO_JUGADORES_EQUIPO tab_equipo.tamanio_equipo%TYPE;
+        TAMANIO_JUGADORES_GAME tab_game.tamanio_equipos%TYPE;
+        cantidad_equipos tab_torneo.cantidad_equipos%TYPE;
+        CANTIDAD_EQUIPOS_TORNEO_REGISTRADOS INTEGER;
+        CANTIDAD_EQUIPOS_TORNEO_MAYOR BOOLEAN := FALSE;
+        
+    BEGIN
+        SELECT funcion_Retorna_ultmoid('tab_usuario_torneo','id_usuario_torneo') INTO ULTIMOID;
+        --valida si el usuario existe
+        SELECT id_datos INTO ID_USUARIO_ENCONTRADO FROM tab_datosPersonales WHERE tab_datosPersonales.id_datos = wid_usuario;
+        IF ID_USUARIO_ENCONTRADO IS NOT NULL THEN
+            USUARIO_ENCONTRADO = TRUE;
+        END IF;
+        --valida si el torneo existe
+        SELECT id_torneo INTO ID_TORNEO_ENCONTRADO FROM tab_torneo WHERE tab_torneo.id_torneo = wid_torneo;
+        IF ID_TORNEO_ENCONTRADO IS NOT NULL THEN
+            TORNEO_ENCONTRADO = TRUE;
+        END IF;
+        --valida si el usuario ya esta en el torneo
+        SELECT id_datos_persona INTO ID_USUARIO_TORNEO_ENCONTRADO FROM tab_usuario_torneo WHERE tab_usuario_torneo.id_datos_persona = wid_usuario AND tab_usuario_torneo.id_torneo = wid_torneo;
+        IF ID_USUARIO_TORNEO_ENCONTRADO IS NOT NULL THEN
+            USUARIO_TORNEO_ENCONTRADO = TRUE;
+        END IF;
+
+        --VALIDACIONES DE CANTIDAD DE EQUIPOS EN EL TORNEO Y TAMANIO DE EQUIPO EN EL TORNEO
+
+        SELECT tab_torneo.cantidad_equipos INTO cantidad_equipos FROM tab_torneo WHERE tab_torneo.id_torneo = wid_torneo;
+        SELECT COUNT(*) INTO CANTIDAD_EQUIPOS_TORNEO_REGISTRADOS FROM tab_usuario_torneo WHERE tab_usuario_torneo.id_torneo = wid_torneo;
+        IF CANTIDAD_EQUIPOS_TORNEO_REGISTRADOS >= cantidad_equipos THEN
+            CANTIDAD_EQUIPOS_TORNEO_MAYOR = TRUE;
+        END IF;
+
+        --IMPRIMIR LOS VALORES DE LAS VARIABLES
+        RAISE NOTICE 'USUARIO ENCONTRADO: %',USUARIO_ENCONTRADO;
+        RAISE NOTICE 'TORNEO ENCONTRADO: %',TORNEO_ENCONTRADO;
+        RAISE NOTICE 'USUARIO TORNEO ENCONTRADO: %',USUARIO_TORNEO_ENCONTRADO;
+        RAISE NOTICE 'CANTIDAD_EQUIPOS_TORNEO_MAYOR: %',CANTIDAD_EQUIPOS_TORNEO_MAYOR;
+
+
+        
+
+
+        IF USUARIO_ENCONTRADO AND TORNEO_ENCONTRADO AND NOT USUARIO_TORNEO_ENCONTRADO AND NOT CANTIDAD_EQUIPOS_TORNEO_MAYOR  THEN
+            INSERT INTO tab_usuario_torneo VALUES (ULTIMOID,wid_torneo,wid_usuario);
             IF FOUND THEN
                 RETURN TRUE;
             ELSE

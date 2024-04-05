@@ -5,7 +5,7 @@ DROP TYPE IF EXISTS jugador_perfil CASCADE;
 
 
 
-
+DROP TABLE IF EXISTS tab_usuario_torneo; --TABLA INTERMEDIA
 DROP TABLE IF EXISTS tab_equipo_torneo; --TABLA INTERMEDIA
 DROP TABLE IF EXISTS tab_jugador_equipo; --TABLA INTERMEDIA
 DROP TABLE IF EXISTS tab_usuario_evento; --TABLA INTERMEDIA
@@ -266,6 +266,21 @@ CREATE TABLE tab_equipo_torneo -- TABLA INTERMEDIA EQUIPO TORNEO
     PRIMARY KEY(id_equipo_torneo),
     FOREIGN KEY(id_equipo) REFERENCES tab_equipo(id_equipo),
     FOREIGN KEY(id_torneo) REFERENCES tab_torneo(id_torneo)
+);
+
+CREATE TABLE tab_usuario_torneo -- TABLA INTERMEDIA USUARIO TORNEO
+(
+    id_usuario_torneo       INTEGER     NOT NULL CHECK(id_usuario_torneo>0),
+    id_torneo               INTEGER     NOT NULL CHECK(id_torneo>0),
+    id_datos_persona        INTEGER     NOT NULL CHECK(id_datos_persona>0),
+    user_insert             VARCHAR,--     NOT NULL,
+    user_update             VARCHAR,
+    date_insert             TIMESTAMP WITHOUT TIME ZONE,-- NOT NULL,
+    date_update             TIMESTAMP WITHOUT TIME ZONE ,
+
+    PRIMARY KEY(id_usuario_torneo),
+    FOREIGN KEY(id_torneo) REFERENCES tab_torneo(id_torneo),
+    FOREIGN KEY(id_datos_persona) REFERENCES tab_datosPersonales(id_datos)
 );
 
 CREATE TABLE tab_usuario_evento
