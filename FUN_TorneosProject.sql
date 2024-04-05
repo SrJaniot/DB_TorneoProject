@@ -941,6 +941,8 @@ $$
     DECLARE ID_USUARIO_ENCONTRADO INTEGER;
     DECLARE USUARIO_ENCONTRADO BOOLEAN:=FALSE;
 
+    DECLARE MD5_HASH VARCHAR;
+
     BEGIN
         -- VALIDA QUE EL JUGADOR NO ESTE YA REGISTRADO EN LA TABLA DE usuario_evento es decir que si ya genero tiquete.
         SELECT id_datos_persona INTO ID_JUGADOR_ENCONTRADO FROM tab_usuario_evento WHERE id_datos_persona=wid_usuario;
@@ -976,8 +978,10 @@ $$
         --VALIDAR QUE EL JUGADOR NO ESTE REGISTRADO EN EL EVENTO, QUE EL EVENTO EXISTA Y QUE EL AFORO NO ESTE LLENO Y QUE EL USUARIO EXISTA
 
         IF NOT JUGADOR_ENCONTRADO AND EVENTO_ENCONTRADO AND CANTIDAD_PERSONAS_REGISTRADAS < AFORO_EVENTO AND USUARIO_ENCONTRADO  THEN
+            -- MD5 PARA GENERAR HASH DE USUARIO_EVENTO
+            SELECT MD5(whash_usuario_evento) INTO MD5_HASH;
             INSERT INTO tab_usuario_evento (id_usuario_evento, id_evento, id_datos_persona, hash_usuario_evento) 
-            VALUES (ULTIMOID_JUGADOR, wid_evento, wid_usuario, whash_usuario_evento); 
+            VALUES (ULTIMOID_JUGADOR, wid_evento, wid_usuario, MD5_HASH); 
                 IF FOUND THEN
                     RETURN TRUE;
                 ELSE
@@ -989,6 +993,59 @@ $$
     END;
 $$
 LANGUAGE PLPGSQL;
+
+
+--FUNCION QUE ME PERMITE VALIDAR EL CODIGO DE BARRAS EN LA TABLA tab_usuario_evento retorna los datos de los usuarios
+
+CREATE OR REPLACE FUNCTION fun_get_jugador_codigo_barras_evento(wid_evento tab_evento.id_evento%TYPE,
+                                 wid_usuario tab_datosPersonales.id_datos%TYPE,
+                                 whash_usuario_evento tab_usuario_evento.hash_usuario_evento%TYPE ) RETURNS json  AS
+$$
+    DECLARE ID_REGISTRO_ENCONTRADO INTEGER;
+    DECLARE REGISTRO_ENCONTRADO BOOLEAN := FALSE;
+    DECLARE MD5_HASH VARCHAR;
+    DECLARE USUARIO_JSON JSON;
+
+
+
+
+    BEGIN
+        --COMBIERTE EL HASH QUE LLEGA POR PARAMETROS A MD5
+         SELECT MD5(whash_usuario_evento) INTO MD5_HASH;
+
+
+        --BUSCAR EL REGISTRO POR LOS PARAMETROS DE LA FUNCION EN LA TABLA tab_usuario_evento
+        SELECT id_usuario_evento INTO ID_REGISTRO_ENCONTRADO FROM tab_usuario_evento 
+        WHERE tab_usuario_evento.id_evento=wid_evento AND tab_usuario_evento.id_datos_persona=wid_usuario AND tab_usuario_evento.hash_usuario_evento=MD5_HASH;
+
+        IF ID_REGISTRO_ENCONTRADO IS NOT NULL THEN
+            REGISTRO_ENCONTRADO=TRUE;
+        END IF;
+
+        IF REGISTRO_ENCONTRADO THEN
+            SELECT ROW_TO_JSON(t) INTO USUARIO_JSON FROM (
+                SELECT dp.nombre_jugador, dp.edad_jugador, dp.correo_jugador, td.nom_documento AS tipo_documento, dp.num_documento  
+                FROM tab_datosPersonales dp
+                INNER JOIN tab_tipodocumento td ON dp.id_tipo_documento = td.id_documento
+                WHERE dp.id_datos = wid_usuario
+            ) t;
+            RETURN USUARIO_JSON;
+        ELSE
+            RETURN NULL; -- O cualquier otro valor o manejo de error que desees
+            
+            
+        END IF;
+
+
+
+
+
+    
+
+    END;
+$$
+LANGUAGE PLPGSQL;
+
 
 
 -- FUNCION PARA HABILITAR BOTONES EN EL FRONTED:
