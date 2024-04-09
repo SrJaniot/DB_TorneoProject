@@ -1016,7 +1016,8 @@ $$
 
         --BUSCAR EL REGISTRO POR LOS PARAMETROS DE LA FUNCION EN LA TABLA tab_usuario_evento
         SELECT id_usuario_evento INTO ID_REGISTRO_ENCONTRADO FROM tab_usuario_evento 
-        WHERE tab_usuario_evento.id_evento=wid_evento AND tab_usuario_evento.id_datos_persona=wid_usuario AND tab_usuario_evento.hash_usuario_evento=MD5_HASH;
+        WHERE tab_usuario_evento.id_evento=wid_evento AND tab_usuario_evento.id_datos_persona=wid_usuario AND 
+        tab_usuario_evento.hash_usuario_evento=MD5_HASH AND tab_usuario_evento.asistencia = FALSE ;
 
         IF ID_REGISTRO_ENCONTRADO IS NOT NULL THEN
             REGISTRO_ENCONTRADO=TRUE;
@@ -1024,7 +1025,7 @@ $$
 
         IF REGISTRO_ENCONTRADO THEN
             SELECT ROW_TO_JSON(t) INTO USUARIO_JSON FROM (
-                SELECT dp.nombre_jugador, dp.edad_jugador, dp.correo_jugador, td.nom_documento AS tipo_documento, dp.num_documento  
+                SELECT dp.nombre_jugador, dp.edad_jugador, dp.correo_jugador,dp.tel_jugador ,td.nom_documento AS tipo_documento, dp.num_documento  
                 FROM tab_datosPersonales dp
                 INNER JOIN tab_tipodocumento td ON dp.id_tipo_documento = td.id_documento
                 WHERE dp.id_datos = wid_usuario
@@ -1045,6 +1046,57 @@ $$
     END;
 $$
 LANGUAGE PLPGSQL;
+
+--FUNCION QUE ME PERMITE VALIDAR LA ASISTENCIA DE UN USUARIO A UN EVENTO EN LA TABLA tab_usuario_evento HACIEDO UPDATE DE LA ASISTENCIA TRUE
+CREATE OR REPLACE FUNCTION fun_update_asistencia_evento(wid_evento tab_evento.id_evento%TYPE,
+                                 wid_usuario tab_datosPersonales.id_datos%TYPE,
+                                 whash_usuario_evento tab_usuario_evento.hash_usuario_evento%TYPE) RETURNS BOOLEAN AS
+$$
+    DECLARE ID_REGISTRO_ENCONTRADO INTEGER;
+    DECLARE REGISTRO_ENCONTRADO BOOLEAN := FALSE;
+    DECLARE MD5_HASH VARCHAR;
+    DECLARE updated_rows INTEGER; -- Declaración de la variable
+
+
+
+
+
+    BEGIN
+        --COMBIERTE EL HASH QUE LLEGA POR PARAMETROS A MD5
+         SELECT MD5(whash_usuario_evento) INTO MD5_HASH;
+
+
+        --BUSCAR EL REGISTRO POR LOS PARAMETROS DE LA FUNCION EN LA TABLA tab_usuario_evento
+        SELECT id_usuario_evento INTO ID_REGISTRO_ENCONTRADO FROM tab_usuario_evento 
+        WHERE tab_usuario_evento.id_evento=wid_evento AND tab_usuario_evento.id_datos_persona=wid_usuario AND 
+        tab_usuario_evento.hash_usuario_evento=MD5_HASH AND tab_usuario_evento.asistencia = FALSE ;
+
+        IF ID_REGISTRO_ENCONTRADO IS NOT NULL THEN
+            REGISTRO_ENCONTRADO=TRUE;
+        END IF;
+
+        IF REGISTRO_ENCONTRADO THEN
+            UPDATE tab_usuario_evento
+            SET asistencia = TRUE
+            WHERE tab_usuario_evento.id_usuario_evento = ID_REGISTRO_ENCONTRADO; 
+
+            -- Utilizamos GET DIAGNOSTICS para obtener el número de filas afectadas
+            GET DIAGNOSTICS updated_rows = ROW_COUNT;
+
+            -- Verificamos si se actualizó al menos una fila
+            IF updated_rows > 0 THEN
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
+        ELSE
+            RETURN FALSE; -- O cualquier otro valor o manejo de error que desees
+        END IF;
+    END;
+$$
+LANGUAGE PLPGSQL;
+
+
 
 
 

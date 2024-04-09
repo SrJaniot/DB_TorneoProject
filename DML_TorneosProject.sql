@@ -163,5 +163,12 @@ SELECT fun_validar_aforo_evento(1);
 SELECT fun_validar_numero_integrantes_equipo_torneo(1);
 
 --FUNCION QUE ME TRAE LOS DATOS DE UN USUARIO A PARTIR DEL TIKET-------------------------------------------------------------------------------------------------------------------------------------------------------------
-SELECT fun_get_jugador_codigo_barras_evento(1,1,'HASH');
+SELECT fun_get_jugador_codigo_barras_evento(1,1,'Ygk1ACA7pa');
+--SELECT * FROM tab_usuario_evento;
+
+--FUNCION PARA ACTUALIZAR EL ESTADO DE UN USUARIO EN UN EVENTO-------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT fun_update_asistencia_evento(1,1,'HASH');
+--SELECT * FROM tab_usuario_evento;
+
+
 
